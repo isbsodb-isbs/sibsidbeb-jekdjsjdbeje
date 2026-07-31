@@ -3,7 +3,7 @@ name: Run ChomeNS Bot
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 */5 * * *"
 
 jobs:
   bot:
@@ -43,19 +43,33 @@ jobs:
 
       - name: Run bot
         run: |
-          java -jar chomens.jar 2>&1 | tee bot.log
+          java -jar chomens.jar 2>&1 | tee bot.log &
+          PID=$!
 
-          if grep -qx -- "-" bot.log; then
-            echo "Found standalone '-' in logs"
-            exit 1
-          fi
+          while kill -0 $PID 2>/dev/null; do
 
-          echo "Bot stopped"
-          exit 1
+            if grep -Eq '^[[:space:]]*-$' bot.log; then
+              echo "Detected standalone - crash command"
+              kill $PID || true
+              exit 1
+            fi
+
+            if grep -Eq 'seenCredits:|DeathTime:|Paper\.Origin:|UUID: \[I;|Pos: \[' bot.log; then
+              echo "Detected crash-command NBT dump"
+              kill $PID || true
+              exit 1
+            fi
+
+            sleep 1
+          done
+
+          wait $PID
 
       - name: Start fresh workflow after failure
         if: failure()
         run: |
+          echo "Starting replacement workflow..."
+
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.PAT_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
