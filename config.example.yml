@@ -141,10 +141,10 @@ bots:
     serverName: 'nekoboom'
     discordChannelId: '1450456554489909368'
 
-  - host: 'opt.chipmunk.land'
-    port: 25565
-    serverName: 'opt'
-    discordChannelId: '1450876352524849162'
+ # - host: 'opt.chipmunk.land'
+ #   port: 25565
+ #   serverName: 'opt'
+ #   discordChannelId: '1450876352524849162'
 
   - host: 'qilk.de'
     port: 12556
