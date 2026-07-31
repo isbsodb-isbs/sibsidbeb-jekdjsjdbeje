@@ -45,7 +45,7 @@ discord:
   inviteLink: 'fuck you'
 
 irc:
-  enabled: true
+  enabled: false
   prefix: '!'
   host: 'irc.libera.chat'
   port: 6697
@@ -97,7 +97,7 @@ core:
 
 # https://code.chipmunk.land/ChomeNS/eval-server
 eval:
-  address: 'chayapak.chipmunk.land:32167'
+  address: 'http://chayapak.chipmunk.land:32167'
 
 selfCare:
   # vanilla
