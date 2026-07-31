@@ -106,7 +106,7 @@ selfCare:
   respawn: true
 
   # essentials
-  vanish: true
+  vanish: false
   nickname: true
   god: true
   socialspy: true
@@ -118,7 +118,7 @@ selfCare:
   # extras
   prefix:
     enabled: true
-    prefix: '&8[&e🍌Banana🍌 Bot&8]'
+    prefix: '&9[prefix: bn!]'
 
   username: false
 
