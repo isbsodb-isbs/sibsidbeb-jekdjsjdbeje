@@ -154,7 +154,11 @@ bots:
     port: 25599
     serverName: 'hceboom'
     discordChannelId: '1532881552009203812'
-    
+
+  - host: 'qilk.de'
+    port: 12556
+    serverName: 'switchboom'
+    discordChannelId: '1450878245921620079'  
   # username - optional, if not specified it will just use a random username
   # serverName - name it whatever you like, it will be used as server name in trusted broadcast and in console
   # discordChannelId - the channel ID for use with discord
