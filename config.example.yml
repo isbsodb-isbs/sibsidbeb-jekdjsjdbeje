@@ -25,8 +25,8 @@ backup:
 
 database:
   enabled: true
-  address: 'jdbc:mariadb://localhost/chomens_bot'
-  username: 'chomens_bot'
+  address: 'jdbc:mariadb://serverless-us-east1.sysp0000.db2.skysql.com:4064/chomens_bot?useSsl=true'
+  username: 'dbpgf10251474'
   password: __DB_PASSWORD__
 
 discord:
