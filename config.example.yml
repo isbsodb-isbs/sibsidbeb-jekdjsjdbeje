@@ -3,6 +3,9 @@
 prefixes:
   - 'bn!'
   - 'df:'
+  - '🍌'
+  - '🍌:'
+  - '🍌!'
 
 commandSpyPrefixes:
   - '/defaultcbot '
