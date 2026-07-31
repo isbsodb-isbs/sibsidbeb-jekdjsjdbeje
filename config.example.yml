@@ -25,8 +25,8 @@ backup:
 
 database:
   enabled: true
-  address: 'jdbc:mariadb://serverless-us-east1.sysp0000.db2.skysql.com:4064/chomebot?sslMode=verify-full'
-  username: 'dbpgf10251474'
+  address: 'jdbc:mariadb://cloud.layerbase.dev:41270/chomens?sslMode=REQUIRED'
+  username: 'root'
   password: __DB_PASSWORD__
 
 discord:
