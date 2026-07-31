@@ -9,7 +9,7 @@ permissions:
 
 concurrency:
   group: chomens-bot
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   bot:
