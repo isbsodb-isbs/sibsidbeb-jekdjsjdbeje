@@ -21,7 +21,11 @@ jobs:
         run: |
           ls -lh
           test -f chomens.jar
-
+      - name: Debug jar
+        run: |
+          ls -lh chomens.jar
+          file chomens.jar
+          head -c 200 chomens.jar
       - name: Validate jar
         run: |
           file chomens.jar
