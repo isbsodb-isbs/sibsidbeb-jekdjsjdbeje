@@ -32,10 +32,15 @@ jobs:
         with:
           lfs: true
 
+      - name: Pull Git LFS files
+        run: |
+          git lfs install
+          git lfs pull
+
       - name: Install Java 21
         uses: actions/setup-java@v4
         with:
-          java-version: 21
+          java-version: "21"
           distribution: temurin
 
       - name: Verify jar
@@ -43,6 +48,7 @@ jobs:
           ls -lh chomens.jar
           file chomens.jar
           jar tf chomens.jar > /dev/null
+          echo "Jar is valid"
 
       - name: Generate config.yml
         run: |
@@ -52,10 +58,32 @@ jobs:
           config.example.yml > config.yml
 
       - name: Run bot
+        id: bot
         run: |
-          while true; do
-            java -jar chomens.jar
+          set -e
 
-            echo "Bot crashed. Restarting in 5 seconds..."
-            sleep 5
+          java -jar chomens.jar 2>&1 | tee bot.log &
+          BOT_PID=$!
+
+          while kill -0 $BOT_PID 2>/dev/null; do
+            if grep -qx -- "-" bot.log; then
+              echo "Found standalone '-' in logs"
+              kill $BOT_PID || true
+              exit 1
+            fi
+
+            sleep 1
           done
+
+          wait $BOT_PID
+
+      - name: Start fresh workflow after failure
+        if: failure()
+        run: |
+          echo "Starting replacement workflow..."
+
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.PAT_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/run-bot.yml/dispatches \
+            -d '{"ref":"main"}'
