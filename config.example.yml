@@ -126,23 +126,7 @@ selfCare:
   icu: true
 
 bots:
-
-  # username - optional, if not specified it will just use a random username
-  # serverName - name it whatever you like, it will be used as server name in trusted broadcast and in console
-  # discordChannelId - the channel ID for use with discord
-  # ircChannel - same as discordChannelId but for irc and is a channel name
-  # hidden - if enabled, the server address will not show anywhere in the bot, including discord, netmsg, etc., except console
-  # useCore - if enabled it just sends the command using chat instead of using core. recommended to enable useChat too when this is disabled
-  # useCorePlaceBlock - uses the place block core instead of the main core. only used if useCore is enabled
-  # useChat - when the bot tellraws it will chat instead of using the core to run tellraw
-  # useSNBTComponents - if the server is >=1.21.5, it's pretty likely that you can enable this since 1.21.5 supports SNBT components
-  # coreCommandSpy - set to true if server supports enabling player's commandspy through command block, defaults to true
-  # forceImpulseCore - set to true if the server is a kaboom clone but still has the minecraft command block mechanic
-  # logConnectionStatusMessages - logs connecting and disconnected messages to console (and the log file) and discord if set to true, defaults to true
-  # resolveSRV - whether to resolve SRV records on the server. the notchian minecraft doesn't resolve them
-  # essentialsMessages - the messages in essentials that the bot uses for self care (no example is intentional)
-  # coreRateLimit - will ignore commands if reached the ratelimit
-   - host: 'chipmunk.land'
+  - host: 'chipmunk.land'
     port: 25565
     serverName: 'chipmunk'
     discordChannelId: '1450456420343480370'
@@ -183,6 +167,22 @@ bots:
     serverName: 'frostbide'
     discordChannelId: '1456934182520492073'
     ircChannel: '#frostbide-bot'
+
+  # username - optional, if not specified it will just use a random username
+  # serverName - name it whatever you like, it will be used as server name in trusted broadcast and in console
+  # discordChannelId - the channel ID for use with discord
+  # ircChannel - same as discordChannelId but for irc and is a channel name
+  # hidden - if enabled, the server address will not show anywhere in the bot, including discord, netmsg, etc., except console
+  # useCore - if enabled it just sends the command using chat instead of using core. recommended to enable useChat too when this is disabled
+  # useCorePlaceBlock - uses the place block core instead of the main core. only used if useCore is enabled
+  # useChat - when the bot tellraws it will chat instead of using the core to run tellraw
+  # useSNBTComponents - if the server is >=1.21.5, it's pretty likely that you can enable this since 1.21.5 supports SNBT components
+  # coreCommandSpy - set to true if server supports enabling player's commandspy through command block, defaults to true
+  # forceImpulseCore - set to true if the server is a kaboom clone but still has the minecraft command block mechanic
+  # logConnectionStatusMessages - logs connecting and disconnected messages to console (and the log file) and discord if set to true, defaults to true
+  # resolveSRV - whether to resolve SRV records on the server. the notchian minecraft doesn't resolve them
+  # essentialsMessages - the messages in essentials that the bot uses for self care (no example is intentional)
+  # coreRateLimit - will ignore commands if reached the ratelimit
 
 
   # or with the optional ones
