@@ -107,7 +107,7 @@ selfCare:
 
   # essentials
   vanish: true
-  nickname: false
+  nickname: true
   god: true
   socialspy: true
   mute: true
