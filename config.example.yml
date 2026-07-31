@@ -163,7 +163,7 @@ bots:
   - host: 'somberspoon.dsh.gg'
     port: 25565
     serverName: 'somberspoon'
-    discordChannelId: '1532873102978056465'
+    discordChannelId: '1532875053094535318'
     
   # username - optional, if not specified it will just use a random username
   # serverName - name it whatever you like, it will be used as server name in trusted broadcast and in console
