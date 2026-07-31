@@ -125,7 +125,7 @@ selfCare:
   icu: true
 
 bots:
-  - host: 'chipmunk.land'
+  - host: 'kaboom.chipmunk.land'
     port: 25565
     serverName: 'chipmunk'
     discordChannelId: '1450456420343480370'
@@ -135,35 +135,25 @@ bots:
     serverName: 'kaboom'
     discordChannelId: '1450456463871971481'
 
-  - host: '168.100.225.224'
-    port: 25565
-    serverName: 'nekoboom'
-    discordChannelId: '1450456554489909368'
-
  # - host: 'opt.chipmunk.land'
  #   port: 25565
  #   serverName: 'opt'
  #   discordChannelId: '1450876352524849162'
 
-  - host: 'qilk.de'
-    port: 12556
-    serverName: 'switchboom'
-    discordChannelId: '1450878245921620079'
-
-  - host: 'discordtonystark.com'
-    port: 25565
-    serverName: 'jorkcoom'
-    discordChannelId: '1455166911502483711'
-
-  - host: 'frostbi.de'
-    port: 25565
-    serverName: 'frostbide'
-    discordChannelId: '1456934182520492073'
-
   - host: 'somberspoon.dsh.gg'
     port: 25565
     serverName: 'somberspoon'
     discordChannelId: '1532875053094535318'
+    
+  - host: 'chayapak.chipmunk.land'
+    port: 25565
+    serverName: 'chomens'
+    discordChannelId: '1532880964852912360'
+
+  - host: 'kaboom.hcesaropz.dev'
+    port: 25599
+    serverName: 'hceboom'
+    discordChannelId: '1532881552009203812'
     
   # username - optional, if not specified it will just use a random username
   # serverName - name it whatever you like, it will be used as server name in trusted broadcast and in console
