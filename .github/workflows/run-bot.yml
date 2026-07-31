@@ -71,9 +71,9 @@ jobs:
           java -jar chomens.jar
 
       - name: Restart after crash
-        if: failure()
+        if: always()
         run: |
-          echo "Bot crashed"
+          echo "Restarting bot"
 
           curl \
             -X POST \
