@@ -64,14 +64,6 @@ jobs:
               exit 1
             fi
 
-            # Detect disconnect:
-            # [anything Info] [anything] [anything] Disconnected:anything
-            if echo "$line" | grep -Eq '^\[.* Info\] \[.*\] \[.*\] Disconnected:.*$'; then
-              echo "Detected bot disconnect"
-              kill $PID || true
-              exit 1
-            fi
-
           done
 
           wait $PID
