@@ -1,0 +1,199 @@
+# Config file for ChomeNS Bot
+
+prefixes:
+  - 'bn!'
+  - 'df:'
+
+commandSpyPrefixes:
+  - '/defaultcbot '
+
+consoleCommandPrefix: '.'
+
+# how backup works is that it makes an http request for the address
+# if the address is reachable it will not start the bot
+# if the address is not reachable then it will start the bot
+
+# *** it doesn't care about the status code
+
+# if the bot has already been started and the address is back up it
+# will stop the bot
+backup:
+  enabled: false
+  address: 'https://fard.sex/check'
+  interval: 1000 # in milliseconds
+  failTimes: 2
+
+database:
+  enabled: true
+  address: 'jdbc:mariadb://localhost/chomens_bot'
+  username: 'chomens_bot'
+  password: __DB_PASSWORD__
+
+discord:
+  enabled: true
+  prefix: '!'
+  serverId : '1449708985451286702'
+  enableDiscordHashing: true # !!! this also affects the key generation if you disable this
+  token: __DISCORD_TOKEN__
+  trustedRoleName: 'Trusted'
+  adminRoleName: 'Admin'
+  ownerRoleName: 'Owner'
+  statusMessage: 'Eating bananas:)'
+  inviteLink: 'fuck you'
+
+irc:
+  enabled: false
+  prefix: '!'
+  host: 'irc.libera.chat'
+  port: 6665
+  name: 'chomens_bot'
+  password: ''
+
+music:
+  urlRatelimit:
+    seconds: 15
+    limit: 7
+
+colorPalette:
+  primary: 'yellow'
+  secondary: 'gold'
+  defaultColor: 'gray' # ig java has the `default` keyword so i need to use defaultColor
+  username: 'blue'
+  uuid: 'aqua'
+  string: 'aqua'
+  number: 'gold'
+  ownerName: 'green'
+
+# you HAVE TO CHANGE THIS if you are hosting another instance of my bot.
+ownerName: 'bananabot'
+
+consoleChatFormat: '{"translate":"chat.type.text","with":["OWNER_NAME","MESSAGE"]}'
+
+ownerAuthentication:
+  enabled: false
+  timeout: 10 # in seconds !!! not milliseconds
+
+# if this is enabled when someone does a clear chat command the bot
+# will tellraw `{player} cleared the chat`
+announceClearChatUsername: false
+
+# literal rainbow armor using leather armors
+rainbowArmor: false
+
+trusted:
+  - 'juro5000'
+  - 'dfngbrth'
+
+weatherApiKey: 'key here' # weatherapi.com key
+
+namespace: 'bananabot' # useful when you make a clone of the bot
+
+core:
+  # PLEASE give valid JSON component here
+  customName: '[{"text":"[🍌Banana🍌 Bot]","color":"yellow"}]'
+
+# https://code.chipmunk.land/ChomeNS/eval-server
+eval:
+  address: 'chayapak.chipmunk.land:32167'
+
+selfCare:
+  # vanilla
+  op: true
+  gamemode: true
+  respawn: true
+
+  # essentials
+  vanish: true
+  nickname: false
+  god: true
+  socialspy: true
+  mute: true
+
+  # commandspy
+  cspy: true
+
+  # extras
+  prefix:
+    enabled: true
+    prefix: '&8[&e🍌Banana🍌 Bot&8]'
+
+  username: false
+
+  # iControlUwU
+  icu: true
+
+bots:
+  # username - optional, if not specified it will just use a random username
+  # serverName - name it whatever you like, it will be used as server name in trusted broadcast and in console
+  # discordChannelId - the channel ID for use with discord
+  # ircChannel - same as discordChannelId but for irc and is a channel name
+  # hidden - if enabled, the server address will not show anywhere in the bot, including discord, netmsg, etc., except console
+  # useCore - if enabled it just sends the command using chat instead of using core. recommended to enable useChat too when this is disabled
+  # useCorePlaceBlock - uses the place block core instead of the main core. only used if useCore is enabled
+  # useChat - when the bot tellraws it will chat instead of using the core to run tellraw
+  # useSNBTComponents - if the server is >=1.21.5, it's pretty likely that you can enable this since 1.21.5 supports SNBT components
+  # coreCommandSpy - set to true if server supports enabling player's commandspy through command block, defaults to true
+  # forceImpulseCore - set to true if the server is a kaboom clone but still has the minecraft command block mechanic
+  # logConnectionStatusMessages - logs connecting and disconnected messages to console (and the log file) and discord if set to true, defaults to true
+  # resolveSRV - whether to resolve SRV records on the server. the notchian minecraft doesn't resolve them
+  # essentialsMessages - the messages in essentials that the bot uses for self care (no example is intentional)
+  # coreRateLimit - will ignore commands if reached the ratelimit
+
+  - host: 'chipmunk.land'
+    port: 25565
+    serverName: 'chipmunk'
+    discordChannelId: '1450456420343480370'
+
+  - host: 'kaboom.pw'
+    port: 25565
+    serverName: 'kaboom'
+    discordChannelId: '1450456463871971481'
+
+  - host: '168.100.225.224'
+    port: 25565
+    serverName: 'nekoboom'
+    discordChannelId: '1450456554489909368'
+
+  - host: 'opt.chipmunk.land'
+    port: 25565
+    serverName: 'opt'
+    discordChannelId: '1450876352524849162'
+
+  - host: 'qilk.de'
+    port: 12556
+    serverName: 'switchboom'
+    discordChannelId: '1450878245921620079'
+
+  - host: 'discordtonystark.com'
+    port: 25565
+    serverName: 'jorkcoom'
+    discordChannelId: '1455166911502483711'
+
+  - host: 'frostbi.de'
+    port: 25565
+    serverName: 'frostbide'
+    discordChannelId: '1456934182520492073'
+
+
+  # or with the optional ones
+  # - host: 'localhost'
+  #   port: 25565
+  #   username: 'ChomeNS_Bot'
+  #   serverName: 'Localhost'
+  #   discordChannelId: '1450456420343480370'
+  #   ircChannel: '#chomens/localhost'
+  #   hidden: false
+  #   useCore: true
+  #   useCorePlaceBlock: false
+  #   useChat: false
+  #   useSNBTComponents: true
+  #   coreCommandSpy: true
+  #   forceImpulseCore: false
+  #   logConnectionStatusMessages: true
+  #   resolveSRV: true
+  #   reconnectDelay: 2000
+  #   chatQueueDelay: 125
+  #   selfCareDelay: 1000
+  #   coreRateLimit:
+  #     limit: 10
+  #     reset: 1000 # in milliseconds
