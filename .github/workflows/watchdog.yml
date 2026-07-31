@@ -2,8 +2,6 @@ name: ChomeNS Bot Watchdog
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "*/5 * * * *"
 
 permissions:
   actions: write
