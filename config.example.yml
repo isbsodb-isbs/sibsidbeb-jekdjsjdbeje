@@ -1,4 +1,4 @@
-you'onfig file for ChomeNS Bot
+# Config file for ChomeNS Bot
 
 prefixes:
   - 'bn!'
@@ -42,7 +42,9 @@ discord:
   adminRoleName: 'Admin'
   ownerRoleName: 'Owner'
   statusMessage: 'Eating bananas:)'
-  inviteLink:'https://discord.gg/W9JThk4s'httpsc:
+  inviteLink: 'https://discord.gg/W9JThk4sR'
+
+irc:
   enabled: false
   prefix: '!'
   host: 'irc.libera.chat'
@@ -197,4 +199,4 @@ bots:
   #   selfCareDelay: 1000
   #   coreRateLimit:
   #     limit: 10
-  #     reset: 1000 # in milliseconds
+  #     reset: 1000 # in millisecyou'
