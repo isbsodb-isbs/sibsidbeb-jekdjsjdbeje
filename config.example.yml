@@ -1,4 +1,4 @@
-# Config file for ChomeNS Bot
+you'onfig file for ChomeNS Bot
 
 prefixes:
   - 'bn!'
@@ -42,9 +42,7 @@ discord:
   adminRoleName: 'Admin'
   ownerRoleName: 'Owner'
   statusMessage: 'Eating bananas:)'
-  inviteLink: 'fuck you'
-
-irc:
+  inviteLink:'https://discord.gg/W9JThk4s'httpsc:
   enabled: false
   prefix: '!'
   host: 'irc.libera.chat'
