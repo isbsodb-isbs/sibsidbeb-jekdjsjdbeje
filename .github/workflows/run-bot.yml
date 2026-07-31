@@ -43,24 +43,35 @@ jobs:
 
       - name: Run bot
         run: |
-          java -jar chomens.jar 2>&1 | tee bot.log &
+          stdbuf -oL -eL java -jar chomens.jar 2>&1 | tee bot.log &
           PID=$!
 
-          while kill -0 $PID 2>/dev/null; do
+          tail -Fn0 bot.log | while read line; do
 
-            if grep -Eq '^[[:space:]]*-$' bot.log; then
+            echo "$line"
+
+            # Detect standalone "-" crash command
+            if echo "$line" | grep -Eq '^[[:space:]]*-$'; then
               echo "Detected standalone - crash command"
               kill $PID || true
               exit 1
             fi
 
-            if grep -Eq 'seenCredits:|DeathTime:|Paper\.Origin:|UUID: \[I;|Pos: \[' bot.log; then
+            # Detect NBT crash command dumps
+            if echo "$line" | grep -Eq 'seenCredits:|DeathTime:|Paper\.Origin:|UUID: \[I;|Pos: \['; then
               echo "Detected crash-command NBT dump"
               kill $PID || true
               exit 1
             fi
 
-            sleep 1
+            # Detect disconnect:
+            # [anything Info] [anything] [anything] Disconnected:anything
+            if echo "$line" | grep -Eq '^\[.* Info\] \[.*\] \[.*\] Disconnected:.*$'; then
+              echo "Detected bot disconnect"
+              kill $PID || true
+              exit 1
+            fi
+
           done
 
           wait $PID
