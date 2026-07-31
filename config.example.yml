@@ -25,7 +25,7 @@ backup:
 
 database:
   enabled: true
-  address: 'jdbc:mariadb://serverless-us-east1.sysp0000.db2.skysql.com:4064/chomens_bot?useSsl=true'
+  address: 'jdbc:mariadb://serverless-us-east1.sysp0000.db2.skysql.com:4064/chomebot?sslMode=verify-full'
   username: 'dbpgf10251474'
   password: __DB_PASSWORD__
 
