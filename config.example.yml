@@ -125,8 +125,8 @@ selfCare:
   icu: true
 
 bots:
-  - host: 'kaboom.chipmunk.land'
-    port: 25565
+  - host: 'chipmunk.land'
+    port: 17891
     serverName: 'chipmunk'
     discordChannelId: '1450456420343480370'
 
