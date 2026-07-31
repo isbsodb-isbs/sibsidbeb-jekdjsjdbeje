@@ -45,12 +45,12 @@ discord:
   inviteLink: 'fuck you'
 
 irc:
-  enabled: false
+  enabled: true
   prefix: '!'
   host: 'irc.libera.chat'
-  port: 6665
-  name: 'chomens_bot'
-  password: ''
+  port: 6697
+  name: 'banana_bot'
+  password: 'banana'
 
 music:
   urlRatelimit:
@@ -126,6 +126,7 @@ selfCare:
   icu: true
 
 bots:
+
   # username - optional, if not specified it will just use a random username
   # serverName - name it whatever you like, it will be used as server name in trusted broadcast and in console
   # discordChannelId - the channel ID for use with discord
@@ -141,41 +142,47 @@ bots:
   # resolveSRV - whether to resolve SRV records on the server. the notchian minecraft doesn't resolve them
   # essentialsMessages - the messages in essentials that the bot uses for self care (no example is intentional)
   # coreRateLimit - will ignore commands if reached the ratelimit
-
-  - host: 'chipmunk.land'
+   - host: 'chipmunk.land'
     port: 25565
     serverName: 'chipmunk'
     discordChannelId: '1450456420343480370'
+    ircChannel: '#chipmunk-bot'
 
   - host: 'kaboom.pw'
     port: 25565
     serverName: 'kaboom'
     discordChannelId: '1450456463871971481'
+    ircChannel: '#kaboom-bot'
 
   - host: '168.100.225.224'
     port: 25565
     serverName: 'nekoboom'
     discordChannelId: '1450456554489909368'
+    ircChannel: '#nekoboom-bot'
 
   - host: 'opt.chipmunk.land'
     port: 25565
     serverName: 'opt'
     discordChannelId: '1450876352524849162'
+    ircChannel: '#opt-bot'
 
   - host: 'qilk.de'
     port: 12556
     serverName: 'switchboom'
     discordChannelId: '1450878245921620079'
+    ircChannel: '#switchboom-bot'
 
   - host: 'discordtonystark.com'
     port: 25565
     serverName: 'jorkcoom'
     discordChannelId: '1455166911502483711'
+    ircChannel: '#jorkcoom-bot'
 
   - host: 'frostbi.de'
     port: 25565
     serverName: 'frostbide'
     discordChannelId: '1456934182520492073'
+    ircChannel: '#frostbide-bot'
 
 
   # or with the optional ones
