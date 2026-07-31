@@ -68,7 +68,7 @@ jobs:
         run: |
           set -e
 
-          java -Xms6G -Xmx6G -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:+DisableExplicitGC -jar chomens.jar
+          java -Xms4G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:+DisableExplicitGC -jar chomens.jar
 
       - name: Restart after crash
         if: always()
