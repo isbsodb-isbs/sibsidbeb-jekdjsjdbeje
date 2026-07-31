@@ -1,0 +1,41 @@
+name: ChomeNS Bot Watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  actions: write
+
+concurrency:
+  group: chomens-watchdog
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check bot
+        run: |
+          RUNNING=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.PAT_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/run-bot.yml/runs?status=in_progress" \
+            | jq '.total_count')
+
+          echo "Running bot jobs: $RUNNING"
+
+          if [ "$RUNNING" -eq 0 ]; then
+            echo "Bot missing, starting..."
+
+            curl \
+              -X POST \
+              -H "Authorization: Bearer ${{ secrets.PAT_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              https://api.github.com/repos/${{ github.repository }}/actions/workflows/run-bot.yml/dispatches \
+              -d '{"ref":"main"}'
+          else
+            echo "Bot OK"
+          fi
