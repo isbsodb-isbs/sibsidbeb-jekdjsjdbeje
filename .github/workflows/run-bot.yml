@@ -27,14 +27,22 @@ jobs:
           --health-retries=10
 
     steps:
-      - name: Download repo
+      - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Install Java 21
         uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: temurin
+
+      - name: Verify jar
+        run: |
+          ls -lh chomens.jar
+          file chomens.jar
+          jar tf chomens.jar > /dev/null
 
       - name: Generate config.yml
         run: |
