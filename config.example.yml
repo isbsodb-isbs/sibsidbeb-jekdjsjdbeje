@@ -97,7 +97,7 @@ core:
 
 # https://code.chipmunk.land/ChomeNS/eval-server
 eval:
-  address: 'http://chayapak.chipmunk.land:32167'
+  address: 'https://google.com'
 
 selfCare:
   # vanilla
