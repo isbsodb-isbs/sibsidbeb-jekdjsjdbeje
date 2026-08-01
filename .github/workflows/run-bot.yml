@@ -70,13 +70,28 @@ jobs:
 
             echo "Replacement started"
           ) &
-          disown
 
       - name: Run bot
         id: run_bot
         run: |
           set +e
-          java -Xms3G -Xmx3G -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:+DisableExplicitGC -jar chomens.jar
+
+          java \
+            -Xms3G \
+            -Xmx3G \
+            -XX:+UseG1GC \
+            -XX:MaxGCPauseMillis=100 \
+            -XX:+ParallelRefProcEnabled \
+            -XX:+AlwaysPreTouch \
+            -XX:+DisableExplicitGC \
+            -jar chomens.jar &
+
+          PID=$!
+
+          trap 'echo "Shutdown requested"; kill -TERM $PID 2>/dev/null; wait $PID; exit 0' TERM INT
+
+          wait $PID
+
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           echo "Bot process exited with code $code"
