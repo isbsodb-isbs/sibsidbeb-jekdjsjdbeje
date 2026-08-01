@@ -1,6 +1,6 @@
 # Config file for ChomeNS Bot
 prefixes:
-  - 'bn!'
+  - '\u0000'
 commandSpyPrefixes:
   - '/defaultcbot '
 
