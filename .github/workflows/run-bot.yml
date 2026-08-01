@@ -77,13 +77,14 @@ jobs:
             -XX:+ParallelRefProcEnabled \
             -XX:+AlwaysPreTouch \
             -XX:+DisableExplicitGC \
-            -jar chomens.jar &
+            -jar chomens.jar \
+            >/dev/null 2>&1 &
 
           PID=$!
 
-          trap 'echo "Shutdown requested"; kill -TERM $PID 2>/dev/null; wait $PID; exit 0' TERM INT
+          trap 'echo "Shutdown requested"; kill -TERM "$PID" 2>/dev/null; wait "$PID"; exit 0' TERM INT
 
-          wait $PID
+          wait "$PID"
 
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
