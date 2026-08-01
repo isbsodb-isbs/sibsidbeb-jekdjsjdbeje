@@ -85,23 +85,16 @@ jobs:
 
           ttyd -W -p 7681 -c "chomens:${{ secrets.T_PWD }}" tmux attach -t chomens > /tmp/ttyd.log 2>&1 &
 
-          cloudflared tunnel --url http://localhost:7681 --protocol http2 --no-autoupdate > /tmp/cloudflared.log 2>&1 &
+          cloudflared tunnel --no-autoupdate run --token "${{ secrets.CF_TUNNEL_TOKEN }}" > /tmp/cloudflared.log 2>&1 &
 
-          # Wait for confirmed registration, not just the URL string
-          for i in $(seq 1 60); do
-            if grep -q "Registered tunnel connection" /tmp/cloudflared.log 2>/dev/null; then
-              URL=$(grep -o 'https://[a-zA-Z0-9-]*\.trycloudflare\.com' /tmp/cloudflared.log | head -n1)
-              echo "=============================================="
-              echo " Terminal available at: $URL"
-              echo " Username: chomens"
-              echo "=============================================="
-              break
-            fi
-            sleep 1
-          done
+          echo "=============================================="
+          echo " Terminal available at your configured hostname"
+          echo " Username: chomens"
+          echo "=============================================="
 
-          echo "----- cloudflared log (last 40 lines) -----"
-          tail -n 40 /tmp/cloudflared.log
+          sleep 3
+          echo "----- cloudflared log (last 20 lines) -----"
+          tail -n 20 /tmp/cloudflared.log
           echo "--------------------------------------------"
 
           trap 'echo "Shutdown requested"; tmux send-keys -t chomens C-c; sleep 3; tmux kill-session -t chomens 2>/dev/null; exit 0' TERM INT
