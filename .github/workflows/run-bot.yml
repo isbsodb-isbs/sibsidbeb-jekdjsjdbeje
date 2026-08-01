@@ -50,34 +50,37 @@ jobs:
         run: |
           (
             sleep 19800
-
             echo "5.5 hours reached"
-
             curl \
               -X POST \
               -H "Authorization: Bearer ${{ secrets.PAT_TOKEN }}" \
               -H "Accept: application/vnd.github+json" \
               https://api.github.com/repos/${{ github.repository }}/actions/workflows/run-bot.yml/dispatches \
               -d '{"ref":"main"}'
-
             echo "Replacement started"
-            exit 0
           ) &
+          disown
 
       - name: Run bot
+        id: run_bot
         run: |
-          set -e
-
+          set +e
           java -Xms4G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:+DisableExplicitGC -jar chomens.jar
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          echo "Bot process exited with code $code"
 
       - name: Restart after crash
-        if: always()
+        if: always() && steps.run_bot.outputs.exit_code != '0'
         run: |
-          echo "Restarting bot"
-
+          echo "Bot exited with non-zero code (${{ steps.run_bot.outputs.exit_code }}) — restarting"
           curl \
             -X POST \
             -H "Authorization: Bearer ${{ secrets.PAT_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/run-bot.yml/dispatches \
             -d '{"ref":"main"}'
+
+      - name: Clean stop (no restart)
+        if: always() && steps.run_bot.outputs.exit_code == '0'
+        run: echo "Bot stopped cleanly (exit 0) — not restarting"
