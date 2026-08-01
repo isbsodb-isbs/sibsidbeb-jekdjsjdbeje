@@ -1,0 +1,38 @@
+name: Encrypt ChomeNS Jar
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  encrypt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install 7zip
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y p7zip-full
+
+      - name: Create encrypted jar archive
+        run: |
+          rm -f chomens.7z
+          7z a -t7z -p"${{ secrets.EC_PASSWORD }}" -mhe=on chomens.7z chomens.jar
+
+      - name: Remove original jar
+        run: |
+          rm -f chomens.jar
+
+      - name: Commit encrypted jar
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add chomens.7z chomens.jar
+          git commit -m "Update encrypted ChomeNS jar" || echo "No changes"
+          git push
