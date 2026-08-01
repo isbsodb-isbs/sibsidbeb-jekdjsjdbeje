@@ -1,10 +1,6 @@
 # Config file for ChomeNS Bot
 prefixes:
-  - 'bn!'
-  - 'df:'
   - '🍌'
-  - '🍌:'
-  - '🍌!'
 
 commandSpyPrefixes:
   - '/defaultcbot '
@@ -105,7 +101,7 @@ selfCare:
   respawn: true
 
   # essentials
-  vanish: false
+  vanish: true
   nickname: true
   god: true
   socialspy: true
