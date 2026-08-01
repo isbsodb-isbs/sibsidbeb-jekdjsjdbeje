@@ -112,7 +112,7 @@ selfCare:
 
   # extras
   prefix:
-    enabled: true
+    enabled: false
     prefix: '&a[prefix: bn!]'
 
   username: false
