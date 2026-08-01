@@ -64,29 +64,30 @@ jobs:
             echo "Replacement started"
           ) &
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+          detached: true
+
       - name: Run bot
         id: run_bot
         run: |
           set +e
 
-          java \
-            -Xms3G \
-            -Xmx3G \
-            -XX:+UseG1GC \
-            -XX:MaxGCPauseMillis=100 \
-            -XX:+ParallelRefProcEnabled \
-            -XX:+AlwaysPreTouch \
-            -XX:+DisableExplicitGC \
-            -jar chomens.jar \
-            > chomens.log 2>&1 &
+          tmux new-session -d -s chomens \
+            "java -Xms3G -Xmx3G -XX:+UseG1GC -XX:MaxGCPauseMillis=100 \
+             -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:+DisableExplicitGC \
+             -jar chomens.jar; \
+             echo \$? > /tmp/chomens_exit_code"
 
-          PID=$!
+          trap 'echo "Shutdown requested"; tmux send-keys -t chomens C-c; sleep 3; tmux kill-session -t chomens 2>/dev/null; exit 0' TERM INT
 
-          trap 'echo "Shutdown requested"; kill -TERM "$PID" 2>/dev/null; wait "$PID"; exit 0' TERM INT
+          while tmux has-session -t chomens 2>/dev/null; do
+            sleep 5
+          done
 
-          wait "$PID"
-
-          code=$?
+          code=$(cat /tmp/chomens_exit_code 2>/dev/null || echo 1)
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           echo "Bot process exited with code $code"
 
