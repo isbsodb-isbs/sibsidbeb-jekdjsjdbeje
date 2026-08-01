@@ -62,7 +62,7 @@ colorPalette:
   ownerName: 'green'
 
 # you HAVE TO CHANGE THIS if you are hosting another instance of my bot.
-ownerName: 'bananabot'
+ownerName: 'sex_bot'
 
 consoleChatFormat: '{"translate":"chat.type.text","with":["OWNER_NAME","MESSAGE"]}'
 
