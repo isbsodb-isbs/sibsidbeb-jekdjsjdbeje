@@ -1,4 +1,4 @@
-name: Run ChomeNS Bot
+name: Run ChomeNS
 
 on:
   workflow_dispatch:
@@ -76,7 +76,7 @@ jobs:
         id: run_bot
         run: |
           set +e
-          java -Xms4G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:+DisableExplicitGC -jar chomens.jar
+          java -Xms3G -Xmx3G -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:+DisableExplicitGC -jar chomens.jar
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           echo "Bot process exited with code $code"
