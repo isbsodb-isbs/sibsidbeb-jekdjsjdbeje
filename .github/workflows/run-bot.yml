@@ -22,31 +22,31 @@ jobs:
         with:
           lfs: true
 
-      - name: Pull LFS
+      - name: Pull the LFS thingys
         run: |
           git lfs install
           git lfs pull
 
-      - name: Setup Java 21
+      - name: Setup Java 21 bcos github doesnt want to
         uses: actions/setup-java@v4
         with:
           java-version: "21"
           distribution: temurin
 
-      - name: Verify jar
+      - name: Verify jar if i am stupid or not
         run: |
           test -f chomens.jar
           jar tf chomens.jar >/dev/null
           echo "Jar OK"
 
-      - name: Create config
+      - name: Configure
         run: |
           sed \
           -e "s|__DB_PASSWORD__|${{ secrets.DB_PASSWORD }}|g" \
           -e "s|__DISCORD_TOKEN__|${{ secrets.DISCORD_TOKEN }}|g" \
           config.example.yml > config.yml
 
-      - name: Start replacement timer
+      - name: Start timer to reset
         run: |
           (
             DELAY=$((3600 + RANDOM % 3601))
@@ -64,7 +64,7 @@ jobs:
             echo "Replacement started"
           ) &
 
-      - name: Install ttyd and cloudflared
+      - name: Install remote terminal tools
         run: |
           sudo curl -sSLo /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/latest/download/ttyd.x86_64
           sudo chmod +x /usr/local/bin/ttyd
@@ -87,10 +87,7 @@ jobs:
 
           cloudflared tunnel --no-autoupdate run --token "${{ secrets.CF_TUNNEL_TOKEN }}" > /tmp/cloudflared.log 2>&1 &
 
-          echo "=============================================="
-          echo " Terminal available at your configured hostname"
-          echo " Username: chomens"
-          echo "=============================================="
+          echo " Terminal at a vewy secwet domain"
 
           sleep 3
           echo "----- cloudflared log (last 20 lines) -----"
