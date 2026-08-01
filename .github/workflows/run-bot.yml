@@ -33,13 +33,6 @@ jobs:
           java-version: "21"
           distribution: temurin
 
-      - name: Decrypt jar
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y p7zip-full
-
-          7z x chomens.7z -p"${{ secrets.EC_PASSWORD }}" -y
-
       - name: Verify jar
         run: |
           test -f chomens.jar
