@@ -78,7 +78,7 @@ jobs:
             -XX:+AlwaysPreTouch \
             -XX:+DisableExplicitGC \
             -jar chomens.jar \
-            >/dev/null 2>&1 &
+            > chomens.log 2>&1 &
 
           PID=$!
 
