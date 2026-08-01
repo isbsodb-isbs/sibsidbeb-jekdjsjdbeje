@@ -73,7 +73,6 @@ jobs:
       - name: Restart after crash
         if: always()
         run: |
-          echo "Bot exited with non-zero code (${{ steps.run_bot.outputs.exit_code }}) — restarting"
           curl \
             -X POST \
             -H "Authorization: Bearer ${{ secrets.PAT_TOKEN }}" \
