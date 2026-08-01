@@ -56,7 +56,7 @@ jobs:
       - name: Start replacement timer
         run: |
           (
-            DELAY=$((14400 + RANDOM % 5401))
+            DELAY=$((3600 + RANDOM % 3601))
             echo "Replacement scheduled in $DELAY seconds"
 
             sleep "$DELAY"
