@@ -24,14 +24,14 @@ database:
   enabled: true
   address: 'jdbc:mariadb://cloud.layerbase.dev:41270/chomens?sslMode=REQUIRED'
   username: 'root'
-  password: __DB_PASSWORD__
+  password: ${DB_PASSWORD}
 
 discord:
   enabled: true
   prefix: '!'
   serverId : '1449708985451286702'
   enableDiscordHashing: true # !!! this also affects the key generation if you disable this
-  token: __DISCORD_TOKEN__
+  token: ${DISCORD_TOKEN}
   trustedRoleName: 'Trusted'
   adminRoleName: 'Admin'
   ownerRoleName: 'Owner'
