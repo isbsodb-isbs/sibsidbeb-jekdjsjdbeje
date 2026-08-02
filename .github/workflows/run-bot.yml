@@ -175,12 +175,8 @@ jobs:
 
           echo "Waiting for graceful shutdown..."
 
-          for i in {1..3}; do
-            if [ -f /tmp/chomens_exit_code ]; then
-              echo "Bot stopped gracefully"
-              exit 0
-            fi
-            sleep 1
+          while [ ! -f /tmp/chomens_exit_code ] && [ ! -f /tmp/chomens_tmux_stopped ]; do
+            sleep 5
           done
 
           echo "Graceful shutdown failed, forcing stop"
