@@ -25,23 +25,40 @@ if (process.argv[2] === "worker") {
 
         try {
 
+            const logs = [];
+
             const vm = new VM({
                 timeout: 30000,
 
                 sandbox: {
                     sh,
 
-                    console,
+                    console: {
+                        log: (...args) => logs.push(args.join(" ")),
+                        error: (...args) => logs.push(args.join(" ")),
+                        warn: (...args) => logs.push(args.join(" "))
+                    },
 
                     process,
                     require,
+                    module,
+                    __dirname,
+                    __filename,
 
                     Buffer,
+
+                    fetch,
+                    FormData,
+                    Headers,
+                    Request,
+                    Response,
+                    AbortController,
 
                     setTimeout,
                     setInterval,
                     clearTimeout,
                     clearInterval,
+                    queueMicrotask,
 
                     URL,
                     URLSearchParams,
@@ -57,6 +74,9 @@ if (process.argv[2] === "worker") {
                     Set,
                     WeakMap,
                     WeakSet,
+                    WeakRef,
+                    FinalizationRegistry,
+
                     Promise,
 
                     Array,
@@ -65,11 +85,20 @@ if (process.argv[2] === "worker") {
                     Number,
                     Boolean,
                     Symbol,
+                    BigInt,
+
+                    Proxy,
+                    Reflect,
+
+                    Intl,
 
                     Error,
                     TypeError,
                     RangeError,
-                    ReferenceError
+                    ReferenceError,
+                    SyntaxError,
+                    EvalError,
+                    URIError
                 }
             });
 
@@ -88,12 +117,23 @@ if (process.argv[2] === "worker") {
             }
 
 
+            let output = "";
+
+            if (logs.length > 0) {
+                output += logs.join("\n");
+            }
+
+            if (result !== undefined) {
+                if (output.length > 0)
+                    output += "\n";
+
+                output += String(result);
+            }
+
+
             process.send({
                 error: false,
-                output:
-                    result === undefined
-                        ? "undefined"
-                        : String(result)
+                output: output || "undefined"
             });
 
 
