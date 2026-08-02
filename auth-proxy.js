@@ -2,27 +2,24 @@ const http = require('http');
 const https = require('https');
 const crypto = require('crypto');
 const fs = require('fs');
-const { execFile } = require('child_process');
 const querystring = require('querystring');
+const WebSocket = require('ws');
 
 const {
   GH_OAUTH_CLIENT_ID, GH_OAUTH_CLIENT_SECRET,
   COOKIE_SECRET, PUBLIC_URL
 } = process.env;
 
+const TARGET_PORT = 7681;
 const LISTEN_PORT = 8080;
 const COOKIE_NAME = 'auth';
 const ALLOWED_FILE = process.env.ALLOWED_FILE || 'allowed-users.txt';
-const TMUX_SESSION = 'chomens';
 
 function loadAllowedUsers() {
   try {
     return fs.readFileSync(ALLOWED_FILE, 'utf8')
       .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-  } catch (e) {
-    console.error(`Could not read ${ALLOWED_FILE}:`, e.message);
-    return [];
-  }
+  } catch (e) { return []; }
 }
 function isAllowedUser(u) { return loadAllowedUsers().includes(u.toLowerCase()); }
 
@@ -42,12 +39,12 @@ function checkCookie(value) {
   if (Date.now() > Number(exp)) return false;
   return isAllowedUser(username);
 }
-function getCookie(req) {
-  const header = req.headers.cookie || '';
+function getCookieFromHeader(header) {
+  header = header || '';
   const match = header.split(';').map(s => s.trim()).find(s => s.startsWith(COOKIE_NAME + '='));
   return match ? match.split('=')[1] : null;
 }
-function isAuthed(req) { return checkCookie(getCookie(req)); }
+function isAuthedReq(req) { return checkCookie(getCookieFromHeader(req.headers.cookie)); }
 
 function httpsPost(hostname, path, body) {
   return new Promise((resolve, reject) => {
@@ -59,13 +56,10 @@ function httpsPost(hostname, path, body) {
         'Accept': 'application/json'
       }
     }, res => {
-      let out = '';
-      res.on('data', c => out += c);
+      let out = ''; res.on('data', c => out += c);
       res.on('end', () => { try { resolve(JSON.parse(out)); } catch (e) { reject(e); } });
     });
-    req.on('error', reject);
-    req.write(data);
-    req.end();
+    req.on('error', reject); req.write(data); req.end();
   });
 }
 function httpsGet(hostname, path, token) {
@@ -73,79 +67,20 @@ function httpsGet(hostname, path, token) {
     https.request({ hostname, path, method: 'GET',
       headers: { 'User-Agent': 'auth-proxy', 'Authorization': `Bearer ${token}` }
     }, res => {
-      let out = '';
-      res.on('data', c => out += c);
+      let out = ''; res.on('data', c => out += c);
       res.on('end', () => { try { resolve(JSON.parse(out)); } catch (e) { reject(e); } });
     }).on('error', reject).end();
   });
 }
 
-let sendQueue = Promise.resolve();
-function queueSend(cmd) {
-  sendQueue = sendQueue.then(() => new Promise((resolve) => {
-    execFile('tmux', ['send-keys', '-t', TMUX_SESSION, '-l', '--', cmd], () => {
-      execFile('tmux', ['send-keys', '-t', TMUX_SESSION, 'Enter'], () => {
-        resolve();
-      });
-    });
-  }));
-  return sendQueue;
+// ---- Global queue: only one committed line flushes to ttyd at a time ----
+let flushQueue = Promise.resolve();
+function enqueueFlush(fn) {
+  flushQueue = flushQueue.then(() => fn().catch(() => {}));
+  return flushQueue;
 }
 
-const PAGE = `<!doctype html><html><head><meta charset="utf-8">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/css/xterm.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/lib/xterm.min.js"></script>
-<style>
-html,body{background:#000;margin:0;padding:0;height:100%}
-#term{height:85vh;padding:6px}
-#bar{display:flex;padding:6px;background:#111}
-#in{flex:1;background:#000;color:#0f0;border:1px solid #333;padding:8px;font-family:monospace;font-size:14px}
-button{padding:8px 16px;margin-left:6px}
-#status{color:#888;font-size:12px;padding:0 6px;font-family:monospace}
-</style></head><body>
-<div id="term"></div>
-<div id="bar">
-  <input id="in" autocomplete="off" placeholder="type command, press Enter"/>
-  <button onclick="send()">Send</button>
-</div>
-<div id="status"></div>
-<script>
-const term = new Terminal({ convertEol: true, disableStdin: true, fontSize: 14, theme: { background: '#000' } });
-term.open(document.getElementById('term'));
-
-let lastLen = 0;
-async function poll(){
-  try {
-    const r = await fetch('/api/output');
-    const t = await r.text();
-    if (t.length !== lastLen) {
-      term.clear();
-      term.write(t);
-      lastLen = t.length;
-    }
-  } catch(e){}
-  setTimeout(poll, 800);
-}
-
-const inp = document.getElementById('in');
-const status = document.getElementById('status');
-async function send(){
-  const cmd = inp.value;
-  if (!cmd) return;
-  inp.value = '';
-  inp.disabled = true;
-  status.textContent = 'sending...';
-  try {
-    await fetch('/api/send', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({cmd}) });
-  } catch(e){}
-  status.textContent = '';
-  inp.disabled = false;
-  inp.focus();
-}
-inp.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
-poll();
-</script></body></html>`;
-
+// ---- HTTP server: auth + reverse proxy to ttyd's static assets ----
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, PUBLIC_URL);
 
@@ -171,35 +106,85 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  if (!isAuthed(req)) {
+  if (!isAuthedReq(req)) {
     const authorizeUrl = `https://github.com/login/oauth/authorize?client_id=${GH_OAUTH_CLIENT_ID}&redirect_uri=${encodeURIComponent(PUBLIC_URL + '/auth/callback')}`;
     res.writeHead(302, { 'Location': authorizeUrl });
     return res.end();
   }
 
-  if (url.pathname === '/api/output') {
-    execFile('tmux', ['capture-pane', '-t', TMUX_SESSION, '-e', '-p', '-S', '-2000'], (err, stdout) => {
-      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end(err ? 'tmux session not found' : stdout);
-    });
-    return;
-  }
-
-  if (url.pathname === '/api/send' && req.method === 'POST') {
-    let body = '';
-    req.on('data', c => body += c);
-    req.on('end', async () => {
-      let cmd;
-      try { cmd = JSON.parse(body).cmd; } catch (e) { res.writeHead(400); return res.end('bad json'); }
-      if (typeof cmd !== 'string') { res.writeHead(400); return res.end('bad cmd'); }
-      await queueSend(cmd);
-      res.writeHead(200); res.end('ok');
-    });
-    return;
-  }
-
-  res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end(PAGE);
+  // authed -> reverse proxy straight to ttyd's HTTP (serves its real frontend, unmodified)
+  const proxyReq = http.request({
+    hostname: '127.0.0.1', port: TARGET_PORT,
+    path: req.url, method: req.method, headers: req.headers
+  }, proxyRes => {
+    res.writeHead(proxyRes.statusCode, proxyRes.headers);
+    proxyRes.pipe(res);
+  });
+  req.pipe(proxyReq);
+  proxyReq.on('error', () => { res.writeHead(502); res.end('Bad gateway'); });
 });
 
-server.listen(LISTEN_PORT, () => console.log(`Console on :${LISTEN_PORT}`));
+// ---- WebSocket: intercept at message level ----
+const wss = new WebSocket.Server({ noServer: true });
+
+server.on('upgrade', (req, socket, head) => {
+  if (!isAuthedReq(req)) { socket.destroy(); return; }
+
+  wss.handleUpgrade(req, socket, head, (clientWs) => {
+    const upstream = new WebSocket(`ws://127.0.0.1:${TARGET_PORT}${req.url}`, 'tty');
+
+    let gotFirst = false;
+    let buf = '';
+
+    upstream.on('message', (data) => {
+      if (clientWs.readyState === WebSocket.OPEN) clientWs.send(data);
+    });
+    upstream.on('close', () => clientWs.close());
+    upstream.on('error', () => clientWs.close());
+
+    clientWs.on('message', (data) => {
+      if (upstream.readyState !== WebSocket.OPEN) return;
+
+      // first message is the ttyd init JSON (auth token + size) - pass through untouched
+      if (!gotFirst) { gotFirst = true; upstream.send(data); return; }
+
+      const str = data.toString('binary');
+      const cmd = str[0];
+
+      if (cmd !== '0') {
+        // resize / other control commands forward immediately
+        upstream.send(data);
+        return;
+      }
+
+      const payload = str.slice(1);
+      for (const ch of payload) {
+        const code = ch.charCodeAt(0);
+        if (ch === '\r' || ch === '\n') {
+          const line = buf;
+          buf = '';
+          enqueueFlush(() => new Promise((resolve) => {
+            if (upstream.readyState === WebSocket.OPEN) {
+              upstream.send('0' + line + '\r');
+            }
+            resolve();
+          }));
+        } else if (code === 0x7f || code === 0x08) {
+          // backspace: edit local buffer only, echo erase to this client only
+          if (buf.length > 0) {
+            buf = buf.slice(0, -1);
+            if (clientWs.readyState === WebSocket.OPEN) clientWs.send('0\b \b');
+          }
+        } else {
+          buf += ch;
+          if (clientWs.readyState === WebSocket.OPEN) clientWs.send('0' + ch);
+        }
+      }
+    });
+
+    clientWs.on('close', () => upstream.close());
+    clientWs.on('error', () => upstream.close());
+  });
+});
+
+server.listen(LISTEN_PORT, () => console.log(`Auth proxy on :${LISTEN_PORT}`));
