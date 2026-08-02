@@ -90,8 +90,6 @@ jobs:
           echo "NPM:"
           npm -v
 
-          cd eval-server
-
           npm install socket.io --no-audit --no-fund
 
           pkill -f eval-server.js || true
@@ -104,7 +102,6 @@ jobs:
           cat /tmp/eval.log
 
           echo "Eval server started"
-
       - name: Run bot
         id: run_bot
         env:
