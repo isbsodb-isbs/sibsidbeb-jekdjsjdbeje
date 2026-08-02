@@ -36,7 +36,7 @@ discord:
   adminRoleName: 'Admin'
   ownerRoleName: 'Owner'
   statusMessage: 'Eating bananas:)'
-  inviteLink: 'in your ass'
+  inviteLink: ''
 
 irc:
   enabled: false
@@ -153,7 +153,7 @@ bots:
   - host: 'qilk.de'
     port: 12556
     serverName: 'switchboom'
-    discordChannelId: '1450878245921620079'  
+    discordChannelId: '1532875053094535318'  
   # username - optional, if not specified it will just use a random username
   # serverName - name it whatever you like, it will be used as server name in trusted broadcast and in console
   # discordChannelId - the channel ID for use with discord
