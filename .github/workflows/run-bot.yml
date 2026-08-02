@@ -33,11 +33,6 @@ jobs:
           java-version: "21"
           distribution: temurin
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
       - name: Verify jar if i am stupid or not
         run: |
           test -f chomens.jar
@@ -51,21 +46,21 @@ jobs:
           -e "s|__DISCORD_TOKEN__|${{ secrets.DISCORD_TOKEN }}|g" \
           config.example.yml > config.yml
 
-      - name: Install ws package
-        run: npm install ws --no-save
-
       - name: Start timer to reset
         run: |
           (
             DELAY=$((3600 + RANDOM % 3601))
             echo "Replacement scheduled in $DELAY seconds"
+
             sleep "$DELAY"
+
             curl \
               -X POST \
               -H "Authorization: Bearer ${{ secrets.PAT_TOKEN }}" \
               -H "Accept: application/vnd.github+json" \
               https://api.github.com/repos/${{ github.repository }}/actions/workflows/run-bot.yml/dispatches \
               -d '{"ref":"main"}'
+
             echo "Replacement started"
           ) &
 
@@ -124,6 +119,7 @@ jobs:
           DELAY=$((RANDOM % 6))
           echo "Restarting in $DELAY seconds"
           sleep "$DELAY"
+
           curl \
             -X POST \
             -H "Authorization: Bearer ${{ secrets.PAT_TOKEN }}" \
