@@ -94,11 +94,15 @@ jobs:
         run: |
           set +e
 
+          rm -f /tmp/chomens_exit_code
+
           tmux new-session -d -s chomens \
             "java -Xms3G -Xmx3G -XX:+UseG1GC -XX:MaxGCPauseMillis=100 \
              -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:+DisableExplicitGC \
              -jar chomens.jar; \
-             echo \$? > /tmp/chomens_exit_code"
+             code=\$?; \
+             echo \$code > /tmp/chomens_exit_code; \
+             exit \$code"
 
           ttyd -W -p 7681 tmux attach -t chomens >/dev/null 2>&1 &
 
@@ -119,7 +123,7 @@ jobs:
           echo "Waiting for graceful shutdown..."
 
           for i in {1..3}; do
-            if ! tmux has-session -t chomens 2>/dev/null; then
+            if [ -f /tmp/chomens_exit_code ]; then
               echo "Bot stopped gracefully"
               exit 0
             fi
@@ -135,7 +139,11 @@ jobs:
           exit 0
           ' TERM INT
 
-          while tmux has-session -t chomens 2>/dev/null; do
+          while [ ! -f /tmp/chomens_exit_code ]; do
+            if ! tmux has-session -t chomens 2>/dev/null; then
+              echo "tmux session disappeared"
+              break
+            fi
             sleep 5
           done
 
