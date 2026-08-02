@@ -102,6 +102,7 @@ jobs:
           cat /tmp/eval.log
 
           echo "Eval server started"
+
       - name: Run bot
         id: run_bot
         env:
@@ -114,13 +115,27 @@ jobs:
 
           rm -f /tmp/chomens_exit_code
 
-          tmux new-session -d -s chomens \
-            "java -Xms3G -Xmx3G -XX:+UseG1GC -XX:MaxGCPauseMillis=100 \
-             -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:+DisableExplicitGC \
-             -jar chomens.jar; \
-             code=\$?; \
-             echo \$code > /tmp/chomens_exit_code; \
-             exit \$code"
+          cat > run-chomens.sh <<'EOF'
+          #!/bin/bash
+
+          java -Xms3G -Xmx3G \
+          -XX:+UseG1GC \
+          -XX:MaxGCPauseMillis=100 \
+          -XX:+ParallelRefProcEnabled \
+          -XX:+AlwaysPreTouch \
+          -XX:+DisableExplicitGC \
+          -jar chomens.jar
+
+          code=$?
+
+          echo $code > /tmp/chomens_exit_code
+
+          exit $code
+          EOF
+
+          chmod +x run-chomens.sh
+
+          tmux new-session -d -s chomens "./run-chomens.sh"
 
           ttyd -W -p 7681 tmux attach -t chomens >/dev/null 2>&1 &
 
@@ -158,11 +173,16 @@ jobs:
           ' TERM INT
 
           while [ ! -f /tmp/chomens_exit_code ]; do
-            if ! tmux has-session -t chomens 2>/dev/null; then
-              echo "tmux session disappeared"
+
+            if ! pgrep -f "java.*chomens.jar" >/dev/null; then
+              echo "Java process disappeared"
+
+              echo 1 > /tmp/chomens_exit_code
               break
             fi
+
             sleep 5
+
           done
 
           code=$(cat /tmp/chomens_exit_code 2>/dev/null || echo 1)
