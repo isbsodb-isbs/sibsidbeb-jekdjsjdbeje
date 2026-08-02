@@ -31,7 +31,7 @@ discord:
   prefix: '!'
   serverId : '1449708985451286702'
   enableDiscordHashing: true # !!! this also affects the key generation if you disable this
-  token: __DISCORD_TOKEN_
+  token: __DISCORD_TOKEN__
   trustedRoleName: 'Trusted'
   adminRoleName: 'Admin'
   ownerRoleName: 'Owner'
