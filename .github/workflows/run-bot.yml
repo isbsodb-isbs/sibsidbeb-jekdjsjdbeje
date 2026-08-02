@@ -90,7 +90,7 @@ jobs:
           echo "NPM:"
           npm -v
 
-          npm install socket.io --no-audit --no-fund
+          npm install socket.io vm2 --no-audit --no-fund
 
           pkill -f eval-server.js || true
 
