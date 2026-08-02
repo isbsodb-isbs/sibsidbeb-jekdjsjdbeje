@@ -93,30 +93,42 @@ function queueSend(cmd) {
 }
 
 const PAGE = `<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/css/xterm.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/lib/xterm.min.js"></script>
 <style>
-body{background:#111;color:#0f0;font-family:monospace;margin:0;padding:10px}
-#out{white-space:pre-wrap;height:80vh;overflow-y:auto;border:1px solid #333;padding:8px}
-#in{width:80%;background:#000;color:#0f0;border:1px solid #333;padding:6px}
-button{padding:6px 12px}
-#status{color:#888;font-size:12px;margin-top:4px}
+html,body{background:#000;margin:0;padding:0;height:100%}
+#term{height:85vh;padding:6px}
+#bar{display:flex;padding:6px;background:#111}
+#in{flex:1;background:#000;color:#0f0;border:1px solid #333;padding:8px;font-family:monospace;font-size:14px}
+button{padding:8px 16px;margin-left:6px}
+#status{color:#888;font-size:12px;padding:0 6px;font-family:monospace}
 </style></head><body>
-<div id="out"></div>
-<input id="in" autocomplete="off" placeholder="type command, press Enter"/>
-<button onclick="send()">Send</button>
+<div id="term"></div>
+<div id="bar">
+  <input id="in" autocomplete="off" placeholder="type command, press Enter"/>
+  <button onclick="send()">Send</button>
+</div>
 <div id="status"></div>
 <script>
-const out = document.getElementById('out');
-const inp = document.getElementById('in');
-const status = document.getElementById('status');
+const term = new Terminal({ convertEol: true, disableStdin: true, fontSize: 14, theme: { background: '#000' } });
+term.open(document.getElementById('term'));
+
+let lastLen = 0;
 async function poll(){
   try {
     const r = await fetch('/api/output');
     const t = await r.text();
-    out.textContent = t;
-    out.scrollTop = out.scrollHeight;
+    if (t.length !== lastLen) {
+      term.clear();
+      term.write(t);
+      lastLen = t.length;
+    }
   } catch(e){}
-  setTimeout(poll, 1000);
+  setTimeout(poll, 800);
 }
+
+const inp = document.getElementById('in');
+const status = document.getElementById('status');
 async function send(){
   const cmd = inp.value;
   if (!cmd) return;
@@ -166,8 +178,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (url.pathname === '/api/output') {
-    execFile('tmux', ['capture-pane', '-t', TMUX_SESSION, '-p', '-S', '-2000'], (err, stdout) => {
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
+    execFile('tmux', ['capture-pane', '-t', TMUX_SESSION, '-e', '-p', '-S', '-2000'], (err, stdout) => {
+      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end(err ? 'tmux session not found' : stdout);
     });
     return;
