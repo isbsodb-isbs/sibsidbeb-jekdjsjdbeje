@@ -84,6 +84,77 @@ jobs:
           curl -sSLo cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
           sudo dpkg -i cloudflared.deb
 
+          # Install eval server
+          sudo apt update
+          sudo apt install -y nodejs npm
+
+          mkdir -p eval-server
+          cd eval-server
+
+          npm init -y >/dev/null 2>&1
+          npm install socket.io >/dev/null 2>&1
+
+          cat > eval-server.js <<'EOF'
+          const { Server } = require("socket.io");
+          const { exec } = require("child_process");
+
+          const io = new Server(3000, {
+              cors: {
+                  origin: "*"
+              }
+          });
+
+          console.log("[Eval] Listening on port 3000");
+
+          io.on("connection", socket => {
+
+              console.log("[Eval] Bot connected");
+
+              socket.on("setFunctions", data => {
+                  console.log("[Eval] Functions received");
+              });
+
+              socket.on("runCode", (server, id, code) => {
+
+                  console.log("[Eval]", server, code);
+
+                  exec(code, {
+                      shell: "/bin/bash",
+                      timeout: 60000,
+                      maxBuffer: 1024 * 1024
+                  }, (error, stdout, stderr) => {
+
+                      let output = stdout || stderr || "";
+
+                      if (error) {
+                          output = error.message + "\n" + output;
+                      }
+
+                      socket.emit(
+                          "codeOutput",
+                          id,
+                          Boolean(error),
+                          output || "(no output)"
+                      );
+                  });
+              });
+
+              socket.on("disconnect", () => {
+                  console.log("[Eval] Bot disconnected");
+              });
+
+          });
+          EOF
+
+          node eval-server.js >/tmp/eval.log 2>&1 &
+          echo $! > /tmp/eval.pid
+
+          sleep 2
+
+          cat /tmp/eval.log
+
+          echo "Eval server started"
+
       - name: Run bot
         id: run_bot
         env:
