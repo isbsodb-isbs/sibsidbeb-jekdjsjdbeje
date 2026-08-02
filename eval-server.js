@@ -34,9 +34,20 @@ if (process.argv[2] === "worker") {
             });
 
 
-            const result = await vm.run(
-                `(async()=>(${code}))()`
-            );
+            let result;
+
+            try {
+                // Expression mode
+                result = await vm.run(
+                    `(async()=>(${code}))()`
+                );
+
+            } catch (expressionError) {
+                // Statement mode
+                result = await vm.run(
+                    `(async()=>{${code}})()`
+                );
+            }
 
 
             process.send({
@@ -238,6 +249,5 @@ io.on("connection", socket => {
         console.log("[Eval] Bot disconnected");
 
     });
-
 
 });
