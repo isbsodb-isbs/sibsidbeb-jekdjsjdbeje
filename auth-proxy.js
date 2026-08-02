@@ -112,7 +112,6 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  // authed -> reverse proxy straight to ttyd's HTTP (serves its real frontend, unmodified)
   const proxyReq = http.request({
     hostname: '127.0.0.1', port: TARGET_PORT,
     path: req.url, method: req.method, headers: req.headers
@@ -158,6 +157,15 @@ server.on('upgrade', (req, socket, head) => {
       }
 
       const payload = str.slice(1);
+
+      // Escape sequences (arrow keys, terminal auto-query responses like device
+      // attributes/cursor position reports) are not real typed text.
+      // Forward straight through untouched instead of buffering/echoing them.
+      if (payload.length > 0 && payload.charCodeAt(0) === 0x1b) {
+        upstream.send(data);
+        return;
+      }
+
       for (const ch of payload) {
         const code = ch.charCodeAt(0);
         if (ch === '\r' || ch === '\n') {
