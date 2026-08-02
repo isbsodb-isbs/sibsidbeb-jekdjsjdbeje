@@ -1,52 +1,67 @@
 const { Server } = require("socket.io");
 const { fork } = require("child_process");
-const { execSync } = require("child_process");
 
 
 /*
     Worker mode
-    This part runs only inside isolated command processes
+    Runs one isolated VM per request
 */
 if (process.argv[2] === "worker") {
 
-    global.sh = (cmd) => {
+    const { VM } = require("vm2");
+    const { execSync } = require("child_process");
+
+
+    function sh(cmd) {
         return execSync(cmd, {
             shell: "/bin/bash",
             timeout: 20000,
             maxBuffer: 1024 * 1024
         }).toString();
-    };
+    }
 
 
     process.on("message", async (code) => {
 
         try {
 
-            const result = await eval(
+            const vm = new VM({
+                timeout: 30000,
+
+                sandbox: {
+                    sh
+                }
+            });
+
+
+            const result = await vm.run(
                 `(async()=>(${code}))()`
             );
+
 
             process.send({
                 error: false,
                 output:
                     result === undefined
-                    ? "undefined"
-                    : String(result)
+                        ? "undefined"
+                        : String(result)
             });
 
 
-        } catch (e) {
+        } catch (err) {
 
             process.send({
                 error: true,
-                output: e.toString()
+                output: err.toString()
             });
 
         }
 
+
         process.exit(0);
 
     });
+
 
     return;
 }
@@ -54,10 +69,11 @@ if (process.argv[2] === "worker") {
 
 
 /*
-    Server mode
+    Main Socket.IO server
 */
 
 const PORT = 3000;
+
 
 const io = new Server(PORT, {
     cors: {
@@ -66,7 +82,8 @@ const io = new Server(PORT, {
 });
 
 
-console.log(`[Eval] Listening on ${PORT}`);
+console.log(`[Eval] Listening on port ${PORT}`);
+
 
 
 io.on("connection", socket => {
@@ -74,14 +91,20 @@ io.on("connection", socket => {
     console.log("[Eval] Bot connected");
 
 
-    socket.on("setFunctions", () => {
+    socket.on("setFunctions", data => {
+
         console.log("[Eval] Functions registered");
+
     });
+
 
 
     socket.on("runCode", (server, id, code) => {
 
-        console.log(`[Eval] ${server}: ${code}`);
+
+        console.log(
+            `[Eval] ${server}: ${code}`
+        );
 
 
         const worker = fork(
@@ -93,13 +116,22 @@ io.on("connection", socket => {
         let finished = false;
 
 
+
         const timeout = setTimeout(() => {
+
 
             if (!finished) {
 
                 finished = true;
 
+
+                console.log(
+                    `[Eval] Killing timeout ${id}`
+                );
+
+
                 worker.kill("SIGKILL");
+
 
                 socket.emit(
                     "codeOutput",
@@ -110,10 +142,13 @@ io.on("connection", socket => {
 
             }
 
+
         }, 30000);
 
 
-        worker.on("message", msg => {
+
+        worker.on("message", result => {
+
 
             if (finished)
                 return;
@@ -121,23 +156,29 @@ io.on("connection", socket => {
 
             finished = true;
 
+
             clearTimeout(timeout);
+
 
 
             socket.emit(
                 "codeOutput",
                 id,
-                msg.error,
-                msg.output
+                result.error,
+                result.output
             );
+
 
 
             worker.kill();
 
+
         });
 
 
+
         worker.on("error", err => {
+
 
             if (finished)
                 return;
@@ -145,7 +186,9 @@ io.on("connection", socket => {
 
             finished = true;
 
+
             clearTimeout(timeout);
+
 
 
             socket.emit(
@@ -155,16 +198,46 @@ io.on("connection", socket => {
                 err.toString()
             );
 
+
         });
+
+
+
+        worker.on("exit", code => {
+
+
+            if (!finished && code !== 0) {
+
+                finished = true;
+
+                clearTimeout(timeout);
+
+
+                socket.emit(
+                    "codeOutput",
+                    id,
+                    true,
+                    `Worker crashed (${code})`
+                );
+
+            }
+
+        });
+
 
 
         worker.send(code);
 
+
     });
+
 
 
     socket.on("disconnect", () => {
+
         console.log("[Eval] Bot disconnected");
+
     });
+
 
 });
