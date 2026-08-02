@@ -9,8 +9,11 @@ const io = new Server(PORT, {
     }
 });
 
+const completed = new Set();
+
 console.log(`[Eval] Listening on port ${PORT}`);
 
+// Bash helper
 global.sh = (command) => {
     try {
         return execSync(command, {
@@ -25,7 +28,8 @@ global.sh = (command) => {
 
 io.on("connection", (socket) => {
 
-    console.log("[Eval] Bot connected");
+    console.log("[Eval] Bot connected:", socket.id);
+
 
     socket.on("setFunctions", (data) => {
         console.log("[Eval] Functions registered");
@@ -34,12 +38,18 @@ io.on("connection", (socket) => {
 
     socket.on("runCode", (server, id, code) => {
 
+        // Prevent duplicate replies
+        if (completed.has(id)) {
+            return;
+        }
+
         console.log(`[Eval] ${server}: ${code}`);
 
         let output;
         let error = false;
 
         try {
+
             output = eval(code);
 
             if (output === undefined) {
@@ -49,9 +59,19 @@ io.on("connection", (socket) => {
             }
 
         } catch (e) {
+
             error = true;
             output = e.toString();
+
         }
+
+
+        if (completed.has(id)) {
+            return;
+        }
+
+        completed.add(id);
+
 
         socket.emit(
             "codeOutput",
@@ -59,11 +79,18 @@ io.on("connection", (socket) => {
             error,
             output
         );
+
+
+        // Allow this ID again later
+        setTimeout(() => {
+            completed.delete(id);
+        }, 60000);
+
     });
 
 
     socket.on("disconnect", () => {
-        console.log("[Eval] Bot disconnected");
+        console.log("[Eval] Bot disconnected:", socket.id);
     });
 
 });
