@@ -1,4 +1,5 @@
 *.jar filter=lfs diff=lfs merge=lfs -text
 chomens.7z filter=lfs diff=lfs merge=lfs -text
+chomens.jar filter=lfs diff=lfs merge=lfs -text
 chomens.jar !text !filter !merge !diff
 chomens2.jar !text !filter !merge !diff
