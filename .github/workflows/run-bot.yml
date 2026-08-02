@@ -155,7 +155,7 @@ jobs:
 
           chmod +x run-chomens.sh
 
-          tmux new-session -d -s chomens "./run-chomens.sh"
+          tmux new-session -d -s chomens "./run-chomens.sh; touch /tmp/chomens_tmux_stopped"
 
           ttyd -W -p 7681 tmux attach -t chomens >/dev/null 2>&1 &
 
