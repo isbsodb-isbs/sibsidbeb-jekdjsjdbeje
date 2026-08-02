@@ -88,20 +88,14 @@ jobs:
              -jar chomens.jar; \
              echo \$? > /tmp/chomens_exit_code"
 
-          ttyd -W -p 7681 tmux attach -t chomens > /tmp/ttyd.log 2>&1 &
+          ttyd -W -p 7681 tmux attach -t chomens >/dev/null 2>&1 &
 
-          node auth-proxy.js > /tmp/auth-proxy.log 2>&1 &
+          node auth-proxy.js >/dev/null 2>&1 &
 
-          cloudflared tunnel --no-autoupdate run --token "${{ secrets.CF_TUNNEL_TOKEN }}" > /tmp/cloudflared.log 2>&1 &
+          cloudflared tunnel --no-autoupdate run \
+            --token "${{ secrets.CF_TUNNEL_TOKEN }}" >/dev/null 2>&1 &
 
-          echo " Terminal at a vewy secwet domain"
-
-          sleep 3
-          echo "----- cloudflared log (last 20 lines) -----"
-          tail -n 20 /tmp/cloudflared.log
-          echo "----- auth-proxy log -----"
-          tail -n 20 /tmp/auth-proxy.log
-          echo "--------------------------------------------"
+          echo "Services started"
 
           trap 'echo "Shutdown requested"; tmux send-keys -t chomens C-c; sleep 3; tmux kill-session -t chomens 2>/dev/null; exit 0' TERM INT
 
