@@ -87,7 +87,7 @@ namespace: 'bananabot' # useful when you make a clone of the bot
 
 core:
   # PLEASE give valid JSON component here
-  customName: '[{"text":"[🍌Banana🍌 Bot]","color":"yellow"}]'
+  customName: '[{"text":"@"}]'
 
 # https://code.chipmunk.land/ChomeNS/eval-server
 eval:
