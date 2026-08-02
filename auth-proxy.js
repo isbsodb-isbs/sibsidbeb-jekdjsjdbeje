@@ -73,14 +73,67 @@ function httpsGet(hostname, path, token) {
   });
 }
 
-// ---- Global queue: only one committed line flushes to ttyd at a time ----
+// ---- Global queue: only one submitted line flushes to ttyd at a time ----
 let flushQueue = Promise.resolve();
 function enqueueFlush(fn) {
   flushQueue = flushQueue.then(() => fn().catch(() => {}));
   return flushQueue;
 }
 
-// ---- HTTP server: auth + reverse proxy to ttyd's static assets ----
+const PAGE = `<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/css/xterm.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/lib/xterm.min.js"></script>
+<style>
+html,body{background:#000;margin:0;padding:0;height:100%}
+#term{height:85vh;padding:6px;box-sizing:border-box}
+#bar{display:flex;padding:6px;background:#111}
+#in{flex:1;background:#000;color:#0f0;border:1px solid #333;padding:10px;font-family:monospace;font-size:16px}
+button{padding:10px 18px;margin-left:6px;font-size:16px}
+#status{color:#888;font-size:12px;padding:0 6px;font-family:monospace;height:16px}
+</style></head><body>
+<div id="term"></div>
+<div id="bar">
+  <input id="in" autocomplete="off" autocapitalize="off" autocorrect="off" placeholder="type command, press Enter"/>
+  <button id="sendBtn">Send</button>
+</div>
+<div id="status"></div>
+<script>
+const term = new Terminal({ convertEol: true, disableStdin: true, fontSize: 14, cols: 120, rows: 32, theme: { background: '#000' } });
+term.open(document.getElementById('term'));
+
+const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+const ws = new WebSocket(proto + '//' + location.host + '/ws', 'tty');
+ws.binaryType = 'arraybuffer';
+
+ws.addEventListener('open', () => {
+  ws.send(JSON.stringify({ AuthToken: '', columns: 120, rows: 32 }));
+});
+
+ws.addEventListener('message', (ev) => {
+  const data = typeof ev.data === 'string' ? ev.data : new TextDecoder('utf-8').decode(ev.data);
+  if (data.length > 0 && data[0] === '0') {
+    term.write(data.slice(1));
+  }
+});
+
+const inp = document.getElementById('in');
+const status = document.getElementById('status');
+const sendBtn = document.getElementById('sendBtn');
+
+function send(){
+  const cmd = inp.value;
+  if (!cmd) return;
+  inp.value = '';
+  status.textContent = 'sending...';
+  ws.send('0' + cmd + '\\r');
+  status.textContent = '';
+  inp.focus();
+}
+sendBtn.addEventListener('click', send);
+inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); send(); } });
+</script></body></html>`;
+
+// ---- HTTP server ----
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, PUBLIC_URL);
 
@@ -112,28 +165,20 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  const proxyReq = http.request({
-    hostname: '127.0.0.1', port: TARGET_PORT,
-    path: req.url, method: req.method, headers: req.headers
-  }, proxyRes => {
-    res.writeHead(proxyRes.statusCode, proxyRes.headers);
-    proxyRes.pipe(res);
-  });
-  req.pipe(proxyReq);
-  proxyReq.on('error', () => { res.writeHead(502); res.end('Bad gateway'); });
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.end(PAGE);
 });
 
-// ---- WebSocket: intercept at message level ----
+// ---- WebSocket: bridge our custom client <-> ttyd, serialized submits ----
 const wss = new WebSocket.Server({ noServer: true });
 
 server.on('upgrade', (req, socket, head) => {
   if (!isAuthedReq(req)) { socket.destroy(); return; }
+  if (!req.url.startsWith('/ws')) { socket.destroy(); return; }
 
   wss.handleUpgrade(req, socket, head, (clientWs) => {
-    const upstream = new WebSocket(`ws://127.0.0.1:${TARGET_PORT}${req.url}`, 'tty');
-
+    const upstream = new WebSocket(`ws://127.0.0.1:${TARGET_PORT}/ws`, 'tty');
     let gotFirst = false;
-    let buf = '';
 
     upstream.on('message', (data) => {
       if (clientWs.readyState === WebSocket.OPEN) clientWs.send(data);
@@ -144,50 +189,17 @@ server.on('upgrade', (req, socket, head) => {
     clientWs.on('message', (data) => {
       if (upstream.readyState !== WebSocket.OPEN) return;
 
-      // first message is the ttyd init JSON (auth token + size) - pass through untouched
+      // first message: our own JSON handshake, pass straight through
       if (!gotFirst) { gotFirst = true; upstream.send(data); return; }
 
-      const str = data.toString('binary');
-      const cmd = str[0];
-
-      if (cmd !== '0') {
-        // resize / other control commands forward immediately
-        upstream.send(data);
-        return;
-      }
-
-      const payload = str.slice(1);
-
-      // Escape sequences (arrow keys, terminal auto-query responses like device
-      // attributes/cursor position reports) are not real typed text.
-      // Forward straight through untouched instead of buffering/echoing them.
-      if (payload.length > 0 && payload.charCodeAt(0) === 0x1b) {
-        upstream.send(data);
-        return;
-      }
-
-      for (const ch of payload) {
-        const code = ch.charCodeAt(0);
-        if (ch === '\r' || ch === '\n') {
-          const line = buf;
-          buf = '';
-          enqueueFlush(() => new Promise((resolve) => {
-            if (upstream.readyState === WebSocket.OPEN) {
-              upstream.send('0' + line + '\r');
-            }
-            resolve();
-          }));
-        } else if (code === 0x7f || code === 0x08) {
-          // backspace: edit local buffer only, echo erase to this client only
-          if (buf.length > 0) {
-            buf = buf.slice(0, -1);
-            if (clientWs.readyState === WebSocket.OPEN) clientWs.send('0\b \b');
-          }
-        } else {
-          buf += ch;
-          if (clientWs.readyState === WebSocket.OPEN) clientWs.send('0' + ch);
+      // every subsequent message from our custom client is one complete,
+      // deliberately-submitted line - serialize so submits never interleave
+      enqueueFlush(() => new Promise((resolve) => {
+        if (upstream.readyState === WebSocket.OPEN) {
+          upstream.send(data);
         }
-      }
+        resolve();
+      }));
     });
 
     clientWs.on('close', () => upstream.close());
