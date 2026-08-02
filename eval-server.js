@@ -38,10 +38,6 @@ if (process.argv[2] === "worker") {
                         error: (...args) => logs.push(args.join(" ")),
                         warn: (...args) => logs.push(args.join(" "))
                     },
-
-                    process,
-                    require,
-                    module,
                     __dirname,
                     __filename,
 
