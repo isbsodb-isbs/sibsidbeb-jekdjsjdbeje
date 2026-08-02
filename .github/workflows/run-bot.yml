@@ -94,15 +94,35 @@ jobs:
 
           pkill -f eval-server.js || true
 
-          node eval-server.js >/tmp/eval.log 2>&1 &
+          cat > eval-watchdog.sh <<'EOF'
+          #!/bin/bash
+
+          while true; do
+              echo "[Eval Watchdog] Starting eval server"
+
+              node eval-server.js >> /tmp/eval.log 2>&1
+
+              code=$?
+
+              echo "[Eval Watchdog] Eval server stopped with code $code"
+
+              sleep 2
+
+              echo "[Eval Watchdog] Restarting..."
+          done
+          EOF
+
+          chmod +x eval-watchdog.sh
+
+          ./eval-watchdog.sh >/tmp/eval-watchdog.log 2>&1 &
+
           echo $! > /tmp/eval.pid
 
-          sleep 2
+          sleep 3
 
           cat /tmp/eval.log
 
-          echo "Eval server started"
-
+          echo "Eval server watchdog started"
       - name: Run bot
         id: run_bot
         env:
