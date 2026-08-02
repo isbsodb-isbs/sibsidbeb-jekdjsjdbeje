@@ -97,8 +97,6 @@ jobs:
             --shell /usr/sbin/nologin \
             evaluser || true
 
-          sudo chown -R evaluser:evaluser .
-
           cat > eval-watchdog.sh <<'EOF'
           #!/bin/bash
 
@@ -109,7 +107,7 @@ jobs:
 
               code=$?
 
-              echo "[Eval Watchdog] Eval stopped with code $code"
+              echo "[Eval Watchdog] Eval server stopped with code $code"
 
               sleep 2
 
@@ -120,16 +118,21 @@ jobs:
           chmod +x eval-watchdog.sh
 
           sudo chown evaluser:evaluser eval-watchdog.sh
+          sudo chown evaluser:evaluser eval-server.js
 
-          sudo -u evaluser bash -c '
-            cd "'"$GITHUB_WORKSPACE"'"
+          sudo -u evaluser bash -c "
+            cd '$GITHUB_WORKSPACE'
             nohup ./eval-watchdog.sh >/tmp/eval-watchdog.log 2>&1 &
-            echo $! > /tmp/eval.pid
-          '
+            echo \$! > /tmp/eval.pid
+          "
 
           sleep 3
 
+          echo "Eval log:"
           cat /tmp/eval.log || true
+
+          echo "Watchdog log:"
+          cat /tmp/eval-watchdog.log || true
 
           echo "Eval server watchdog started"
       - name: Run bot
