@@ -34,12 +34,16 @@ if (process.argv[2] === "worker") {
                     sh,
 
                     console: {
-                        log: (...args) => logs.push(args.join(" ")),
-                        error: (...args) => logs.push(args.join(" ")),
-                        warn: (...args) => logs.push(args.join(" "))
-                    },
-                    __dirname,
-                    __filename,
+                        log: (...args) => {
+                            logs.push(args.join(" "));
+                        },
+                        error: (...args) => {
+                            logs.push(args.join(" "));
+                        },
+                        warn: (...args) => {
+                            logs.push(args.join(" "));
+                        }
+                     },
 
                     Buffer,
 
