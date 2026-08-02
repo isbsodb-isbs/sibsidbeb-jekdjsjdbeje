@@ -64,11 +64,8 @@ jobs:
             echo "Replacement started"
           ) &
 
-      - name: Install remote terminal tools
+      - name: Install cloudflared
         run: |
-          sudo curl -sSLo /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/latest/download/ttyd.x86_64
-          sudo chmod +x /usr/local/bin/ttyd
-
           curl -sSLo cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
           sudo dpkg -i cloudflared.deb
 
@@ -87,8 +84,6 @@ jobs:
              -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:+DisableExplicitGC \
              -jar chomens.jar; \
              echo \$? > /tmp/chomens_exit_code"
-
-          ttyd -W -p 7681 tmux attach -t chomens > /tmp/ttyd.log 2>&1 &
 
           node auth-proxy.js > /tmp/auth-proxy.log 2>&1 &
 
