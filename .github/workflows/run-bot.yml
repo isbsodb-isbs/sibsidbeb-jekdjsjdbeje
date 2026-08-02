@@ -1,3 +1,4 @@
+
 name: Run ChomeNS
 
 on:
@@ -92,10 +93,7 @@ jobs:
 
           npm install socket.io vm2 --no-audit --no-fund
 
-          sudo useradd \
-            --create-home \
-            --shell /usr/sbin/nologin \
-            evaluser || true
+          pkill -f eval-server.js || true
 
           cat > eval-watchdog.sh <<'EOF'
           #!/bin/bash
@@ -117,22 +115,13 @@ jobs:
 
           chmod +x eval-watchdog.sh
 
-          sudo chown evaluser:evaluser eval-watchdog.sh
-          sudo chown evaluser:evaluser eval-server.js
+          ./eval-watchdog.sh >/tmp/eval-watchdog.log 2>&1 &
 
-          sudo -u evaluser bash -c "
-            cd '$GITHUB_WORKSPACE'
-            nohup ./eval-watchdog.sh >/tmp/eval-watchdog.log 2>&1 &
-            echo \$! > /tmp/eval.pid
-          "
+          echo $! > /tmp/eval.pid
 
           sleep 3
 
-          echo "Eval log:"
-          cat /tmp/eval.log || true
-
-          echo "Watchdog log:"
-          cat /tmp/eval-watchdog.log || true
+          cat /tmp/eval.log
 
           echo "Eval server watchdog started"
       - name: Run bot
