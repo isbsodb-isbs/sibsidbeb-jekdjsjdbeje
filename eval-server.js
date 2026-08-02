@@ -9,16 +9,6 @@ const { fork } = require("child_process");
 if (process.argv[2] === "worker") {
 
     const { VM } = require("vm2");
-    const { execSync } = require("child_process");
-
-
-    function sh(cmd) {
-        return execSync(cmd, {
-            shell: "/bin/bash",
-            timeout: 20000,
-            maxBuffer: 1024 * 1024
-        }).toString();
-    }
 
 
     process.on("message", async (code) => {
@@ -31,7 +21,6 @@ if (process.argv[2] === "worker") {
                 timeout: 30000,
 
                 sandbox: {
-                    sh,
 
                     console: {
                         log: (...args) => {
@@ -43,15 +32,10 @@ if (process.argv[2] === "worker") {
                         warn: (...args) => {
                             logs.push(args.join(" "));
                         }
-                     },
+                    },
 
                     Buffer,
-                    process,
-                    require,
-                    module,
-                    exports,
-                    global,
-                    globalThis,
+
                     fetch,
                     FormData,
                     Headers,
@@ -116,9 +100,11 @@ if (process.argv[2] === "worker") {
                 );
 
             } catch (expressionError) {
+
                 result = await vm.run(
                     `(async()=>{${code}})()`
                 );
+
             }
 
 
@@ -129,10 +115,12 @@ if (process.argv[2] === "worker") {
             }
 
             if (result !== undefined) {
+
                 if (output.length > 0)
                     output += "\n";
 
                 output += String(result);
+
             }
 
 
