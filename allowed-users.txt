@@ -1,1 +1,1 @@
-isbsodb-isbs,QikseekDev
+isbsodb-isbs,QikseekDev,juro-5000
