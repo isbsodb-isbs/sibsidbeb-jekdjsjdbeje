@@ -46,7 +46,12 @@ if (process.argv[2] === "worker") {
                      },
 
                     Buffer,
-
+                    process,
+                    require,
+                    module,
+                    exports,
+                    global,
+                    globalThis,
                     fetch,
                     FormData,
                     Headers,
