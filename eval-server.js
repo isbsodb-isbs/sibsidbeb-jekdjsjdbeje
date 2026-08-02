@@ -29,7 +29,47 @@ if (process.argv[2] === "worker") {
                 timeout: 30000,
 
                 sandbox: {
-                    sh
+                    sh,
+
+                    console,
+
+                    process,
+                    require,
+
+                    Buffer,
+
+                    setTimeout,
+                    setInterval,
+                    clearTimeout,
+                    clearInterval,
+
+                    URL,
+                    URLSearchParams,
+
+                    TextEncoder,
+                    TextDecoder,
+
+                    JSON,
+                    Math,
+                    Date,
+                    RegExp,
+                    Map,
+                    Set,
+                    WeakMap,
+                    WeakSet,
+                    Promise,
+
+                    Array,
+                    Object,
+                    String,
+                    Number,
+                    Boolean,
+                    Symbol,
+
+                    Error,
+                    TypeError,
+                    RangeError,
+                    ReferenceError
                 }
             });
 
@@ -37,13 +77,11 @@ if (process.argv[2] === "worker") {
             let result;
 
             try {
-                // Expression mode
                 result = await vm.run(
                     `(async()=>(${code}))()`
                 );
 
             } catch (expressionError) {
-                // Statement mode
                 result = await vm.run(
                     `(async()=>{${code}})()`
                 );
