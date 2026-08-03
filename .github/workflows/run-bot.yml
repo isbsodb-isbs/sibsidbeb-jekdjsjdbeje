@@ -108,8 +108,6 @@ jobs:
           docker run \
             -d \
             --name chomens-eval \
-            --tmpfs /app \
-            --tmpfs /app/cache \
             --tmpfs /home/node/.npm \
             --memory 512m \
             --read-only \
