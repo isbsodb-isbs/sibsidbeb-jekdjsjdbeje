@@ -108,9 +108,9 @@ jobs:
           docker run \
             -d \
             --name chomens-eval \
-            --tmpfs /app
-            --tmpfs /app/cache
-            --tmpfs /home/node/.npm
+            --tmpfs /app \
+            --tmpfs /app/cache \
+            --tmpfs /home/node/.npm \
             --memory 512m \
             --read-only \
             --tmpfs /tmp \
@@ -120,7 +120,50 @@ jobs:
             -p 3000:3000 \
             chomens-eval
 
+          (
+            while true; do
 
+              RUNNING=$(docker inspect \
+                -f '{{.State.Running}}' \
+                chomens-eval 2>/dev/null || echo false)
+
+
+              if [ "$RUNNING" != "true" ]; then
+
+                echo "[Eval Watchdog] Container stopped, recreating"
+
+
+                docker rm -f chomens-eval 2>/dev/null || true
+
+
+                docker build \
+                  --no-cache \
+                  -t chomens-eval \
+                  ./eval
+
+
+                docker run \
+                  -d \
+                  --name chomens-eval \
+                  --memory 512m \
+                  --read-only \
+                  --tmpfs /tmp \
+                  --cpus 1 \
+                  --pids-limit 100 \
+                  --security-opt no-new-privileges \
+                  -p 3000:3000 \
+                  chomens-eval
+
+
+                echo "[Eval Watchdog] Container recreated"
+
+              fi
+
+
+              sleep 30
+
+            done
+          ) &
           sleep 5
 
 
