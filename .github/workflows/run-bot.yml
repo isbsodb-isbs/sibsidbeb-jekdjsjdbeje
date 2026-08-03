@@ -90,39 +90,47 @@ jobs:
           echo "NPM:"
           npm -v
 
-          npm install socket.io vm2 --no-audit --no-fund
 
-          pkill -f eval-server.js || true
+          echo "Building eval Docker container"
 
-          cat > eval-watchdog.sh <<'EOF'
-          #!/bin/bash
+          docker build \
+            -t chomens-eval \
+            ./eval
 
-          while true; do
-              echo "[Eval Watchdog] Starting eval server"
 
-              node eval-server.js >> /tmp/eval.log 2>&1
+          echo "Removing old eval container"
 
-              code=$?
+          docker rm -f chomens-eval 2>/dev/null || true
 
-              echo "[Eval Watchdog] Eval server stopped with code $code"
 
-              sleep 2
+          echo "Starting eval container"
 
-              echo "[Eval Watchdog] Restarting..."
-          done
-          EOF
+          docker run \
+            -d \
+            --name chomens-eval \
+            --restart unless-stopped \
+            --memory 512m \
+            --cpus 1 \
+            --pids-limit 100 \
+            --security-opt no-new-privileges \
+            -p 3000:3000 \
+            chomens-eval
 
-          chmod +x eval-watchdog.sh
 
-          ./eval-watchdog.sh >/tmp/eval-watchdog.log 2>&1 &
+          sleep 5
 
-          echo $! > /tmp/eval.pid
 
-          sleep 3
+          echo "Eval container status"
 
-          cat /tmp/eval.log
+          docker ps --filter name=chomens-eval
 
-          echo "Eval server watchdog started"
+
+          echo "Eval logs"
+
+          docker logs chomens-eval
+
+
+          echo "Eval Docker started"
       - name: Run bot
         id: run_bot
         env:
