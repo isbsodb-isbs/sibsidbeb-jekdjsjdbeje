@@ -206,10 +206,16 @@ jobs:
           chmod +x eval-watchdog.sh
 
 
-
           # Copy eval server into fake filesystem
-          sudo cp eval-server.js /tmp/evalfs/eval-server.js
+          echo "Copying eval server"
 
+          sudo cp "$GITHUB_WORKSPACE/eval-server.js" /tmp/evalfs/eval-server.js
+
+          echo "Checking eval server inside fake filesystem"
+
+          sudo ls -la /tmp/evalfs/eval-server.js
+
+          sudo proot -R /tmp/evalfs /bin/ls -la /
 
 
           ./eval-watchdog.sh >/tmp/eval-watchdog.log 2>&1 &
