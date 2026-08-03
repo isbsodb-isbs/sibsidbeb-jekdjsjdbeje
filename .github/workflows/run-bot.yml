@@ -109,6 +109,7 @@ jobs:
             -d \
             --name chomens-eval \
             --tmpfs /home/node/.npm \
+            --read-only \
             --memory 2G \
             --tmpfs /tmp \
             --cpus 1 \
@@ -142,6 +143,7 @@ jobs:
                 docker run \
                   -d \
                   --name chomens-eval \
+                  --read-only \
                   --memory 2G \
                   --tmpfs /home/node/.npm \
                   --tmpfs /tmp \
