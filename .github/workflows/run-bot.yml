@@ -41,9 +41,12 @@ jobs:
 
       - name: Configure
         run: |
+          PREFIX=$(cat /dev/urandom | tr -dc 'A-Za-z0-9' | head -c 16)
+
           sed \
           -e "s|__DB_PASSWORD__|${{ secrets.DB_PASSWORD }}|g" \
           -e "s|__DISCORD_TOKEN__|${{ secrets.DISCORD_TOKEN }}|g" \
+          -e "s|__PREFIX__|$PREFIX|g" \
           config.example.yml > config.yml
 
       - name: Start timer to reset
