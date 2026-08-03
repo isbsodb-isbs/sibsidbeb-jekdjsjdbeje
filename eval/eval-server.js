@@ -16,7 +16,7 @@ if (process.argv[2] === "worker") {
         return execSync(cmd, {
             shell: "/bin/bash",
             timeout: 20000,
-            maxBuffer: 1024 * 1024
+            maxBuffer: 10 * 1024 * 1024
         }).toString();
     }
 
