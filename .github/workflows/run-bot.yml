@@ -109,7 +109,7 @@ jobs:
             -d \
             --name chomens-eval \
             --tmpfs /home/node/.npm \
-            --memory 512m \
+            --memory 2G \
             --read-only \
             --tmpfs /tmp \
             --cpus 1 \
@@ -143,8 +143,9 @@ jobs:
                 docker run \
                   -d \
                   --name chomens-eval \
-                  --memory 512m \
+                  --memory 2G \
                   --read-only \
+                  --tmpfs /home/node/.npm \
                   --tmpfs /tmp \
                   --cpus 1 \
                   --pids-limit 100 \
