@@ -1,6 +1,25 @@
 const { Server } = require("socket.io");
 const { fork } = require("child_process");
 
+const WEBHOOK_URL = process.env.DISCORD_WEBHOOK;
+
+async function logWebhook(message) {
+    if (!WEBHOOK_URL) return;
+
+    try {
+        await fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                content: message.slice(0, 1900)
+            })
+        });
+    } catch (err) {
+        console.error("[Webhook Error]", err.message);
+    }
+}
 
 /*
     Worker mode
@@ -198,6 +217,14 @@ io.on("connection", socket => {
 
         console.log(
             `[Eval] ${server}: ${code}`
+                   );
+
+        logWebhook(
+        `📥 **Command**
+        Server: \`${server}\`
+        \`\`\`js
+        ${code}
+        \`\`\``
         );
 
             const worker = fork(
@@ -221,9 +248,7 @@ io.on("connection", socket => {
                 finished = true;
 
 
-                console.log(
-                    `[Eval] Killing timeout ${id}`
-                );
+                
 
 
                 worker.kill("SIGKILL");
@@ -262,6 +287,17 @@ io.on("connection", socket => {
                 id,
                 result.error,
                 result.output
+            );
+
+            logWebhook(
+            `📤 **Output**
+            Server: \`${server}\`
+            ID: \`${id}\`
+            Status: ${result.error ? "❌ Error" : "✅ Success"}
+
+            \`\`\`
+            ${result.output}
+            \`\`\``
             );
 
 
