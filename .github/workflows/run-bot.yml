@@ -110,7 +110,6 @@ jobs:
             --name chomens-eval \
             --tmpfs /home/node/.npm \
             --memory 2G \
-            --read-only \
             --tmpfs /tmp \
             --cpus 1 \
             --pids-limit 100 \
@@ -144,7 +143,6 @@ jobs:
                   -d \
                   --name chomens-eval \
                   --memory 2G \
-                  --read-only \
                   --tmpfs /home/node/.npm \
                   --tmpfs /tmp \
                   --cpus 1 \
