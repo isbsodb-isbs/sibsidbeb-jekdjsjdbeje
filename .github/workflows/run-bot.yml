@@ -108,8 +108,9 @@ jobs:
           docker run \
             -d \
             --name chomens-eval \
-            --restart unless-stopped \
             --memory 512m \
+            --read-only \
+            --tmpfs /tmp \
             --cpus 1 \
             --pids-limit 100 \
             --security-opt no-new-privileges \
