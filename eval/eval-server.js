@@ -200,11 +200,13 @@ io.on("connection", socket => {
             `[Eval] ${server}: ${code}`
         );
 
-
-        const worker = fork(
-            __filename,
-            ["worker"]
-        );
+            const worker = fork(
+                __filename,
+                ["worker"],
+                {
+                    execPath: process.execPath
+                }
+            );
 
 
         let finished = false;
