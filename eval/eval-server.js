@@ -23,13 +23,14 @@ async function logWebhook(message) {
 
 /*
     Worker mode
+
     Runs one isolated VM per request
 */
+
 if (process.argv[2] === "worker") {
 
     const { VM } = require("vm2");
     const { execSync } = require("child_process");
-
 
     function sh(cmd) {
         return execSync(cmd, {
@@ -38,7 +39,6 @@ if (process.argv[2] === "worker") {
             maxBuffer: 10 * 1024 * 1024
         }).toString();
     }
-
 
     process.on("message", async (code) => {
 
@@ -126,7 +126,6 @@ if (process.argv[2] === "worker") {
                 }
             });
 
-
             let result;
 
             try {
@@ -138,8 +137,8 @@ if (process.argv[2] === "worker") {
                 result = await vm.run(
                     `(async()=>{${code}})()`
                 );
-            }
 
+            }
 
             let output = "";
 
@@ -154,12 +153,10 @@ if (process.argv[2] === "worker") {
                 output += String(result);
             }
 
-
             process.send({
                 error: false,
                 output: output || "undefined"
             });
-
 
         } catch (err) {
 
@@ -170,16 +167,13 @@ if (process.argv[2] === "worker") {
 
         }
 
-
         process.exit(0);
 
     });
 
-
     return;
+
 }
-
-
 
 /*
     Main Socket.IO server
@@ -187,22 +181,17 @@ if (process.argv[2] === "worker") {
 
 const PORT = 3000;
 
-
 const io = new Server(PORT, {
     cors: {
         origin: "*"
     }
 });
 
-
 console.log(`[Eval] Listening on port ${PORT}`);
-
-
 
 io.on("connection", socket => {
 
     console.log("[Eval] Bot connected");
-
 
     socket.on("setFunctions", data => {
 
@@ -210,49 +199,37 @@ io.on("connection", socket => {
 
     });
 
-
-
-    socket.on("runCode", (server, id, code) => {
-
+    socket.on("runCode", async (server, id, code) => {
 
         console.log(
             `[Eval] ${server}: ${code}`
                    );
 
-        logWebhook(
-        `📥 **Command**
-        Server: \`${server}\`
-        \`\`\`js
-        ${code}
-        \`\`\``
+        await logWebhook(
+`📥 **Command**
+Server: \`${server}\`
+\`\`\`js
+${code}
+\`\`\``
         );
 
-            const worker = fork(
-                __filename,
-                ["worker"],
-                {
-                    execPath: process.execPath
-                }
-            );
-
+        const worker = fork(
+            __filename,
+            ["worker"],
+            {
+                execPath: process.execPath
+            }
+        );
 
         let finished = false;
 
-
-
         const timeout = setTimeout(() => {
-
 
             if (!finished) {
 
                 finished = true;
 
-
-                
-
-
                 worker.kill("SIGKILL");
-
 
                 socket.emit(
                     "codeOutput",
@@ -261,26 +238,24 @@ io.on("connection", socket => {
                     "Execution timeout"
                 );
 
-            }
+                logWebhook(
+`⏱️ **Timeout**
+Server: \`${server}\`
+ID: \`${id}\``
+                );
 
+            }
 
         }, 30000);
 
-
-
         worker.on("message", result => {
-
 
             if (finished)
                 return;
 
-
             finished = true;
 
-
             clearTimeout(timeout);
-
-
 
             socket.emit(
                 "codeOutput",
@@ -290,38 +265,28 @@ io.on("connection", socket => {
             );
 
             logWebhook(
-            `📤 **Output**
-            Server: \`${server}\`
-            ID: \`${id}\`
-            Status: ${result.error ? "❌ Error" : "✅ Success"}
+`📤 **Output**
+Server: \`${server}\`
+ID: \`${id}\`
+Status: ${result.error ? "❌ Error" : "✅ Success"}
 
-            \`\`\`
-            ${result.output}
-            \`\`\``
+\`\`\`
+${result.output}
+\`\`\``
             );
-
-
 
             worker.kill();
 
-
         });
 
-
-
         worker.on("error", err => {
-
 
             if (finished)
                 return;
 
-
             finished = true;
 
-
             clearTimeout(timeout);
-
-
 
             socket.emit(
                 "codeOutput",
@@ -330,20 +295,15 @@ io.on("connection", socket => {
                 err.toString()
             );
 
-
         });
 
-
-
         worker.on("exit", code => {
-
 
             if (!finished && code !== 0) {
 
                 finished = true;
 
                 clearTimeout(timeout);
-
 
                 socket.emit(
                     "codeOutput",
@@ -352,18 +312,20 @@ io.on("connection", socket => {
                     `Worker crashed (${code})`
                 );
 
+                logWebhook(
+`💥 **Worker Crash**
+Server: \`${server}\`
+ID: \`${id}\`
+Exit code: \`${code}\``
+                );
+
             }
 
         });
 
-
-
         worker.send(code);
 
-
     });
-
-
 
     socket.on("disconnect", () => {
 
