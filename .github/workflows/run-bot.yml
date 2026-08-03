@@ -110,7 +110,10 @@ jobs:
             --name chomens-eval \
             --tmpfs /home/node/.npm \
             --read-only \
+            --log-opt max-size=10m \
+            --log-opt max-file=3 \
             --memory 2G \
+            -e DISCORD_WEBHOOK="${{ secrets.DISCORD_WEBHOOK }}" \
             --tmpfs /tmp \
             --cpus 1 \
             --pids-limit 100 \
@@ -144,6 +147,9 @@ jobs:
                   -d \
                   --name chomens-eval \
                   --read-only \
+                  --log-opt max-size=10m \
+                  --log-opt max-file=3 \
+                  -e DISCORD_WEBHOOK="${{ secrets.DISCORD_WEBHOOK }}" \
                   --memory 2G \
                   --tmpfs /home/node/.npm \
                   --tmpfs /tmp \
