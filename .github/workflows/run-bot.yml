@@ -177,6 +177,7 @@ jobs:
 
 
           pkill -f eval-server.js || true
+          pkill -f eval-watchdog.sh || true
 
 
 
