@@ -1,6 +1,6 @@
 FROM node:22-alpine
 
-RUN apk add --no-cache bash
+RUN apk add --no-cache bash chafa
 
 WORKDIR /app
 
