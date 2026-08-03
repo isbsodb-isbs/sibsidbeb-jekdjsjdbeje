@@ -82,54 +82,112 @@ jobs:
 
           echo "Creating fake eval filesystem"
 
+          sudo rm -rf /tmp/evalfs
+
           sudo mkdir -p /tmp/evalfs/{bin,etc,tmp,home,usr/bin,lib,lib64}
 
-          sudo cp /bin/bash /tmp/evalfs/bin/
-          sudo cp /bin/sh /tmp/evalfs/bin/
-          sudo cp /bin/ls /tmp/evalfs/bin/
-          sudo cp /bin/cat /tmp/evalfs/bin/
-          sudo cp /bin/echo /tmp/evalfs/bin/
 
-          sudo mkdir -p /tmp/evalfs/usr/bin
-          sudo cp "$(which node)" /tmp/evalfs/usr/bin/node
+          echo "Copying node"
 
-          for bin in /bin/bash /bin/sh /bin/ls /bin/cat /bin/echo "$(which node)"; do
-            ldd "$bin" | awk '{print $3}' | grep "^/" | while read lib; do
-              sudo mkdir -p "/tmp/evalfs$(dirname "$lib")"
-              sudo cp "$lib" "/tmp/evalfs$lib"
-            done
+          NODE_BIN="$(which node)"
+
+          sudo cp "$NODE_BIN" /tmp/evalfs/usr/bin/node
+
+
+          echo "Copying node dependencies"
+
+          ldd "$NODE_BIN" | grep "=>" | awk '{print $3}' | while read lib; do
+              if [ -f "$lib" ]; then
+                  sudo mkdir -p "/tmp/evalfs$(dirname "$lib")"
+                  sudo cp "$lib" "/tmp/evalfs$lib"
+              fi
           done
 
+
+          echo "Copying node loader"
+
+          LOADER=$(ldd "$NODE_BIN" | grep "ld-linux" | awk '{print $1}')
+
+          if [ -f "$LOADER" ]; then
+              sudo mkdir -p "/tmp/evalfs$(dirname "$LOADER")"
+              sudo cp "$LOADER" "/tmp/evalfs$LOADER"
+          fi
+
+
+
+          echo "Copying shell tools"
+
+          for bin in /bin/bash /bin/sh /bin/ls /bin/cat /bin/echo; do
+
+              sudo cp "$bin" "/tmp/evalfs$bin"
+
+              ldd "$bin" | grep "=>" | awk '{print $3}' | while read lib; do
+
+                  if [ -f "$lib" ]; then
+                      sudo mkdir -p "/tmp/evalfs$(dirname "$lib")"
+                      sudo cp "$lib" "/tmp/evalfs$lib"
+                  fi
+
+              done
+
+          done
+
+
+
+          echo "Creating fake filesystem config"
+
           echo "root:x:0:0:root:/root:/bin/bash" | sudo tee /tmp/evalfs/etc/passwd >/dev/null
+
           echo "nameserver 1.1.1.1" | sudo tee /tmp/evalfs/etc/resolv.conf >/dev/null
+
+
 
           sudo chmod -R 755 /tmp/evalfs
 
-          echo "Fake FS ready"
+
+
+          echo "Testing node in fake filesystem"
+
+          sudo proot -R /tmp/evalfs /usr/bin/node -v
+
+
 
           sudo curl -sSLo /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/latest/download/ttyd.x86_64
           sudo chmod +x /usr/local/bin/ttyd
 
+
           curl -sSLo cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+
           sudo dpkg -i cloudflared.deb
+
+
 
           echo "Node:"
           node -v
 
+
           echo "NPM:"
           npm -v
 
+
+
           npm install socket.io vm2 --no-audit --no-fund
+          sudo cp -r node_modules /tmp/evalfs/
+
+
 
           pkill -f eval-server.js || true
+
+
 
           cat > eval-watchdog.sh <<'EOF'
           #!/bin/bash
 
           while true; do
+
               echo "[Eval Watchdog] Starting eval server"
 
-              proot -R /tmp/evalfs node /eval-server.js >> /tmp/eval.log 2>&1
+              proot -R /tmp/evalfs /usr/bin/node /eval-server.js >> /tmp/eval.log 2>&1
 
               code=$?
 
@@ -138,21 +196,35 @@ jobs:
               sleep 2
 
               echo "[Eval Watchdog] Restarting..."
+
           done
           EOF
 
+
+
           chmod +x eval-watchdog.sh
+
+
+
+          # Copy eval server into fake filesystem
+          sudo cp eval-server.js /tmp/evalfs/eval-server.js
+
+
 
           ./eval-watchdog.sh >/tmp/eval-watchdog.log 2>&1 &
 
+
           echo $! > /tmp/eval.pid
+
 
           sleep 3
 
+
           cat /tmp/eval.log || true
 
-          echo "Eval server watchdog started"
 
+          echo "Eval server watchdog started"  
+          
       - name: Run bot
         id: run_bot
         env:
