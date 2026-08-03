@@ -1,0 +1,9 @@
+{
+  "name": "chomens-eval",
+  "version": "1.0.0",
+  "main": "eval-server.js",
+  "dependencies": {
+    "socket.io": "^4.8.1",
+    "vm2": "^3.9.19"
+  }
+}
