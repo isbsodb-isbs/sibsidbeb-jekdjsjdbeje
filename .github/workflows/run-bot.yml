@@ -1,4 +1,3 @@
-
 name: Run ChomeNS
 
 on:
@@ -79,29 +78,28 @@ jobs:
       - name: Install remote terminal tools
         run: |
           sudo apt update
-          sudo apt install -y proot
+          sudo apt install -y proot tmux
 
-          echo "Creating eval fake filesystem"
+          echo "Creating fake eval filesystem"
 
-          sudo mkdir -p /tmp/evalfs/{bin,tmp,etc,home,usr,lib,lib64,var}
+          sudo mkdir -p /tmp/evalfs/{bin,etc,tmp,home,usr/bin,lib,lib64}
 
-          # Copy required shell tools
           sudo cp /bin/bash /tmp/evalfs/bin/
           sudo cp /bin/sh /tmp/evalfs/bin/
           sudo cp /bin/ls /tmp/evalfs/bin/
           sudo cp /bin/cat /tmp/evalfs/bin/
           sudo cp /bin/echo /tmp/evalfs/bin/
-          sudo cp /usr/bin/env /tmp/evalfs/usr/bin/ || true
 
-          # Copy required libraries
-          for bin in /bin/bash /bin/sh /bin/ls /bin/cat /bin/echo; do
-              ldd "$bin" | awk '{print $3}' | grep "^/" | while read lib; do
-                  sudo mkdir -p "/tmp/evalfs$(dirname "$lib")"
-                  sudo cp "$lib" "/tmp/evalfs$lib"
-              done
+          sudo mkdir -p /tmp/evalfs/usr/bin
+          sudo cp "$(which node)" /tmp/evalfs/usr/bin/node
+
+          for bin in /bin/bash /bin/sh /bin/ls /bin/cat /bin/echo "$(which node)"; do
+            ldd "$bin" | awk '{print $3}' | grep "^/" | while read lib; do
+              sudo mkdir -p "/tmp/evalfs$(dirname "$lib")"
+              sudo cp "$lib" "/tmp/evalfs$lib"
+            done
           done
 
-          # Basic fake filesystem files
           echo "root:x:0:0:root:/root:/bin/bash" | sudo tee /tmp/evalfs/etc/passwd >/dev/null
           echo "nameserver 1.1.1.1" | sudo tee /tmp/evalfs/etc/resolv.conf >/dev/null
 
@@ -125,14 +123,13 @@ jobs:
 
           pkill -f eval-server.js || true
 
-
           cat > eval-watchdog.sh <<'EOF'
           #!/bin/bash
 
           while true; do
               echo "[Eval Watchdog] Starting eval server"
 
-              proot -R /tmp/evalfs node eval-server.js >> /tmp/eval.log 2>&1
+              proot -R /tmp/evalfs node /eval-server.js >> /tmp/eval.log 2>&1
 
               code=$?
 
@@ -144,9 +141,7 @@ jobs:
           done
           EOF
 
-
           chmod +x eval-watchdog.sh
-
 
           ./eval-watchdog.sh >/tmp/eval-watchdog.log 2>&1 &
 
@@ -156,7 +151,9 @@ jobs:
 
           cat /tmp/eval.log || true
 
-          echo "Eval server watchdog started"      - name: Run bot
+          echo "Eval server watchdog started"
+
+      - name: Run bot
         id: run_bot
         env:
           GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
@@ -211,8 +208,6 @@ jobs:
           while [ ! -f /tmp/chomens_exit_code ] && [ ! -f /tmp/chomens_tmux_stopped ]; do
             sleep 5
           done
-
-          echo "Graceful shutdown failed, forcing stop"
 
           tmux send-keys -t chomens C-c 2>/dev/null
           sleep 1
