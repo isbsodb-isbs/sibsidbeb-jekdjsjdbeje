@@ -78,6 +78,37 @@ jobs:
 
       - name: Install remote terminal tools
         run: |
+          sudo apt update
+          sudo apt install -y proot
+
+          echo "Creating eval fake filesystem"
+
+          sudo mkdir -p /tmp/evalfs/{bin,tmp,etc,home,usr,lib,lib64,var}
+
+          # Copy required shell tools
+          sudo cp /bin/bash /tmp/evalfs/bin/
+          sudo cp /bin/sh /tmp/evalfs/bin/
+          sudo cp /bin/ls /tmp/evalfs/bin/
+          sudo cp /bin/cat /tmp/evalfs/bin/
+          sudo cp /bin/echo /tmp/evalfs/bin/
+          sudo cp /usr/bin/env /tmp/evalfs/usr/bin/ || true
+
+          # Copy required libraries
+          for bin in /bin/bash /bin/sh /bin/ls /bin/cat /bin/echo; do
+              ldd "$bin" | awk '{print $3}' | grep "^/" | while read lib; do
+                  sudo mkdir -p "/tmp/evalfs$(dirname "$lib")"
+                  sudo cp "$lib" "/tmp/evalfs$lib"
+              done
+          done
+
+          # Basic fake filesystem files
+          echo "root:x:0:0:root:/root:/bin/bash" | sudo tee /tmp/evalfs/etc/passwd >/dev/null
+          echo "nameserver 1.1.1.1" | sudo tee /tmp/evalfs/etc/resolv.conf >/dev/null
+
+          sudo chmod -R 755 /tmp/evalfs
+
+          echo "Fake FS ready"
+
           sudo curl -sSLo /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/latest/download/ttyd.x86_64
           sudo chmod +x /usr/local/bin/ttyd
 
@@ -94,13 +125,14 @@ jobs:
 
           pkill -f eval-server.js || true
 
+
           cat > eval-watchdog.sh <<'EOF'
           #!/bin/bash
 
           while true; do
               echo "[Eval Watchdog] Starting eval server"
 
-              node eval-server.js >> /tmp/eval.log 2>&1
+              proot -R /tmp/evalfs node eval-server.js >> /tmp/eval.log 2>&1
 
               code=$?
 
@@ -112,18 +144,19 @@ jobs:
           done
           EOF
 
+
           chmod +x eval-watchdog.sh
 
-        #  ./eval-watchdog.sh >/tmp/eval-watchdog.log 2>&1 &
 
-        #  echo $! > /tmp/eval.pid
+          ./eval-watchdog.sh >/tmp/eval-watchdog.log 2>&1 &
 
-     #     sleep 3
+          echo $! > /tmp/eval.pid
 
-   #       cat /tmp/eval.log
+          sleep 3
 
-       #   echo "Eval server watchdog started"
-      - name: Run bot
+          cat /tmp/eval.log || true
+
+          echo "Eval server watchdog started"      - name: Run bot
         id: run_bot
         env:
           GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
