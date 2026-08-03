@@ -114,15 +114,15 @@ jobs:
 
           chmod +x eval-watchdog.sh
 
-        #  ./eval-watchdog.sh >/tmp/eval-watchdog.log 2>&1 &
+          ./eval-watchdog.sh >/tmp/eval-watchdog.log 2>&1 &
 
-        #  echo $! > /tmp/eval.pid
+          echo $! > /tmp/eval.pid
 
-     #     sleep 3
+          sleep 3
 
-   #       cat /tmp/eval.log
+          cat /tmp/eval.log
 
-       #   echo "Eval server watchdog started"
+          echo "Eval server watchdog started"
       - name: Run bot
         id: run_bot
         env:
