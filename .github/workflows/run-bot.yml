@@ -208,7 +208,7 @@ jobs:
           -XX:+ParallelRefProcEnabled \
           -XX:+AlwaysPreTouch \
           -XX:+DisableExplicitGC \
-          -jar chomens2.jar
+          -jar chomens.jar
 
           code=$?
 
@@ -221,7 +221,7 @@ jobs:
 
           tmux new-session -d -s chomens "./run-chomens.sh; touch /tmp/chomens_tmux_stopped"
 
-          ttyd -W -p 7681 >/dev/null 2>&1 &
+          ttyd -W -p 7681 tmux attach -t chomens >/dev/null 2>&1 &
 
           node auth-proxy.js >/dev/null 2>&1 &
 
@@ -254,7 +254,7 @@ jobs:
 
           while [ ! -f /tmp/chomens_exit_code ]; do
 
-            if ! pgrep -f "java.*chomens2.jar" >/dev/null; then
+            if ! pgrep -f "java.*chomens.jar" >/dev/null; then
               echo "Java process disappeared"
 
               echo 1 > /tmp/chomens_exit_code
