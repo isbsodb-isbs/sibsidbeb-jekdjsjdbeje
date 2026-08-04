@@ -46,6 +46,7 @@ jobs:
           sed \
           -e "s|__DB_PASSWORD__|${{ secrets.DB_PASSWORD }}|g" \
           -e "s|__DISCORD_TOKEN__|${{ secrets.DISCORD_TOKEN }}|g" \
+          -e "s|__DFNGBOOM__|${{ secrets.DFNGBOOM }}|g" \
           -e "s|__PREFIX__|$PREFIX|g" \
           config.example.yml > config.yml
 
