@@ -125,7 +125,7 @@ bots:
     serverName: 'chipmunk'
     discordChannelId: '1450456420343480370'
 
-  - host: 'dfngboom.dpdns.org'
+  - host: '__DFNGBOOM__'
     port: 25565
     serverName: 'dfngboom'
     discordChannelId: '1534156357920624821'
