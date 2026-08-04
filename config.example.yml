@@ -124,7 +124,6 @@ bots:
     port: 17891
     serverName: 'chipmunk'
     discordChannelId: '1450456420343480370'
-    useCorePlaceBlock: true
 
 
   - host: '__DFNGBOOM__'
@@ -132,13 +131,11 @@ bots:
     serverName: 'dfngboom'
     discordChannelId: '1534156357920624821'
     hidden: true
-    useCorePlaceBlock: true
 
   - host: 'kaboom.pw'
     port: 25565
     serverName: 'kaboom'
     discordChannelId: '1450456463871971481'
-    useCorePlaceBlock: true
 
  # - host: 'opt.chipmunk.land'
  #   port: 25565
@@ -149,25 +146,21 @@ bots:
     port: 25565
     serverName: 'somberspoon'
     discordChannelId: '1532875053094535318'
-    useCorePlaceBlock: true
     
   - host: 'chayapak.chipmunk.land'
     port: 25565
     serverName: 'chomens'
     discordChannelId: '1532880964852912360'
-    useCorePlaceBlock: true
 
   - host: 'kaboom.hcesaropz.dev'
     port: 25599
     serverName: 'hceboom'
     discordChannelId: '1532881552009203812'
-    useCorePlaceBlock: true
 
   - host: 'qilk.de'
     port: 12556
     serverName: 'switchboom'
     discordChannelId: '1450878245921620079'  
-    useCorePlaceBlock: true
   # username - optional, if not specified it will just use a random username
   # serverName - name it whatever you like, it will be used as server name in trusted broadcast and in console
   # discordChannelId - the channel ID for use with discord
