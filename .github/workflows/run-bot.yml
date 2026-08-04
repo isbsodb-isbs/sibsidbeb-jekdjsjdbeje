@@ -208,7 +208,7 @@ jobs:
           -XX:+ParallelRefProcEnabled \
           -XX:+AlwaysPreTouch \
           -XX:+DisableExplicitGC \
-          -jar chomens.jar
+          -jar chomens2.jar
 
           code=$?
 
