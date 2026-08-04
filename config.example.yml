@@ -129,6 +129,7 @@ bots:
     port: 25565
     serverName: 'dfngboom'
     discordChannelId: '1534156357920624821'
+    hidden: true
 
   - host: 'kaboom.pw'
     port: 25565
