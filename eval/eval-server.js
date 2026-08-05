@@ -1,5 +1,5 @@
 const { Server } = require("socket.io");
-const { spawn } = require("child_process");
+const { spawn, execSync } = require("child_process");
 const crypto = require("crypto");
 
 /*
@@ -9,7 +9,6 @@ const crypto = require("crypto");
 */
 if (process.argv[2] === "worker") {
     const { VM } = require("vm2");
-    const { execSync } = require("child_process");
 
     function sh(cmd) {
         return execSync(cmd, {
@@ -128,7 +127,6 @@ if (process.argv[2] === "worker") {
     Main Socket.IO server
 */
 
-const { execSync } = require("child_process");
 
 const PORT = 3000;
 const IMAGE = process.env.EVAL_WORKER_IMAGE || "eval-worker";
