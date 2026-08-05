@@ -208,7 +208,7 @@ io.on("connection", socket => {
                 worker.kill("SIGKILL");
                 socket.emit("codeOutput", id, true, "Execution timeout");
             }
-        }, 30000);
+        }, 60000);
 
         worker.stdout.on("data", d => (stdout += d.toString()));
         worker.stderr.on("data", d => (stderr += d.toString()));
