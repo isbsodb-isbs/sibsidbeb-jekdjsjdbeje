@@ -13,7 +13,7 @@ RUN npm install --omit=dev \
 
 COPY eval-server.js .
 COPY eval-watchdog.sh .
-COPY Dockerfile.docker .
+COPY Dockerfile.worker .
 
 RUN chmod +x eval-watchdog.sh \
     && chown -R appuser:appgroup /app
