@@ -178,7 +178,7 @@ io.on("connection", socket => {
                 "--rm",
                 "--name", containerName,
                 "--cap-drop=ALL",
-                "--tmpfs", "/run:size=64m",
+                "--tmpfs", "/run:rw,exec,size=64m",
                 "--security-opt=no-new-privileges:true",
                 "--read-only",
                 "--memory=512m",
