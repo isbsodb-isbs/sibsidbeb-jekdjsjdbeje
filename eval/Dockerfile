@@ -18,7 +18,8 @@ COPY Dockerfile.worker .
 RUN chmod +x eval-watchdog.sh \
     && chown -R appuser:appgroup /app
 
-USER appuser
+# Keep root because docker socket access usually requires it
+USER root
 
 EXPOSE 3000
 
