@@ -208,7 +208,7 @@ jobs:
           -XX:+ParallelRefProcEnabled \
           -XX:+AlwaysPreTouch \
           -XX:+DisableExplicitGC \
-          -jar chomens.jar
+          -jar chomens2.jar
 
           code=$?
 
@@ -254,7 +254,7 @@ jobs:
 
           while [ ! -f /tmp/chomens_exit_code ]; do
 
-            if ! pgrep -f "java.*chomens.jar" >/dev/null; then
+            if ! pgrep -f "java.*chomens2.jar" >/dev/null; then
               echo "Java process disappeared"
 
               echo 1 > /tmp/chomens_exit_code
