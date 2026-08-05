@@ -13,8 +13,6 @@ RUN npm install --omit=dev \
 
 COPY eval-server.js .
 COPY eval-watchdog.sh .
-
-# Worker image source
 COPY Dockerfile.docker .
 
 RUN chmod +x eval-watchdog.sh \
