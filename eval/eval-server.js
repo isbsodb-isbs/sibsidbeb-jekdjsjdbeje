@@ -1,50 +1,46 @@
 const { Server } = require("socket.io");
-const { fork } = require("child_process");
-
+const { spawn } = require("child_process");
+const crypto = require("crypto");
 
 /*
     Worker mode
-    Runs one isolated VM per request
+    Runs one isolated VM per request, inside a disposable Docker container.
+    Invoked as: node eval-server.js worker <base64-code>
 */
 if (process.argv[2] === "worker") {
-
     const { VM } = require("vm2");
     const { execSync } = require("child_process");
 
-
     function sh(cmd) {
         return execSync(cmd, {
-            shell: "/bin/bash",
+            shell: "/bin/sh",
             timeout: 20000,
             maxBuffer: 10 * 1024 * 1024
         }).toString();
     }
 
+    const emit = (payload) => {
+        process.stdout.write(JSON.stringify(payload) + "\n");
+    };
 
-    process.on("message", async (code) => {
+    (async () => {
+        const code = Buffer.from(
+            String(process.argv[3] || ""),
+            "base64"
+        ).toString("utf8");
 
         try {
-
             const logs = [];
 
             const vm = new VM({
                 timeout: 30000,
-
                 sandbox: {
                     sh,
-
                     console: {
-                        log: (...args) => {
-                            logs.push(args.join(" "));
-                        },
-                        error: (...args) => {
-                            logs.push(args.join(" "));
-                        },
-                        warn: (...args) => {
-                            logs.push(args.join(" "));
-                        }
-                     },
-
+                        log: (...args) => { logs.push(args.join(" ")); },
+                        error: (...args) => { logs.push(args.join(" ")); },
+                        warn: (...args) => { logs.push(args.join(" ")); }
+                    },
                     Buffer,
                     process,
                     require,
@@ -58,19 +54,15 @@ if (process.argv[2] === "worker") {
                     Request,
                     Response,
                     AbortController,
-
                     setTimeout,
                     setInterval,
                     clearTimeout,
                     clearInterval,
                     queueMicrotask,
-
                     URL,
                     URLSearchParams,
-
                     TextEncoder,
                     TextDecoder,
-
                     JSON,
                     Math,
                     Date,
@@ -81,9 +73,7 @@ if (process.argv[2] === "worker") {
                     WeakSet,
                     WeakRef,
                     FinalizationRegistry,
-
                     Promise,
-
                     Array,
                     Object,
                     String,
@@ -91,12 +81,9 @@ if (process.argv[2] === "worker") {
                     Boolean,
                     Symbol,
                     BigInt,
-
                     Proxy,
                     Reflect,
-
                     Intl,
-
                     Error,
                     TypeError,
                     RangeError,
@@ -107,20 +94,12 @@ if (process.argv[2] === "worker") {
                 }
             });
 
-
             let result;
-
             try {
-                result = await vm.run(
-                    `(async()=>(${code}))()`
-                );
-
+                result = await vm.run(`(async()=>(${code}))()`);
             } catch (expressionError) {
-                result = await vm.run(
-                    `(async()=>{${code}})()`
-                );
+                result = await vm.run(`(async()=>{${code}})()`);
             }
-
 
             let output = "";
 
@@ -131,208 +110,133 @@ if (process.argv[2] === "worker") {
             if (result !== undefined) {
                 if (output.length > 0)
                     output += "\n";
-
                 output += String(result);
             }
 
-
-            process.send({
-                error: false,
-                output: output || "undefined"
-            });
-
-
+            emit({ error: false, output: output || "undefined" });
         } catch (err) {
-
-            process.send({
-                error: true,
-                output: err.toString()
-            });
-
+            emit({ error: true, output: err.toString() });
         }
 
-
         process.exit(0);
-
-    });
-
+    })();
 
     return;
 }
-
-
 
 /*
     Main Socket.IO server
 */
 
 const PORT = 3000;
-
+const IMAGE = process.env.EVAL_WORKER_IMAGE || "eval-worker";
 
 const io = new Server(PORT, {
-    cors: {
-        origin: "*"
-    }
+    cors: { origin: "*" }
 });
-
 
 console.log(`[Eval] Listening on port ${PORT}`);
 
-
-
 io.on("connection", socket => {
-
     console.log("[Eval] Bot connected");
 
-
     socket.on("setFunctions", data => {
-
         console.log("[Eval] Functions registered");
-
     });
 
-
-
     socket.on("runCode", (server, id, code) => {
+        console.log(`[Eval] ${server}: ${code}`);
 
+        const containerName = `eval-${crypto.randomBytes(8).toString("hex")}`;
+        const encoded = Buffer.from(String(code), "utf8").toString("base64");
 
-        console.log(
-            `[Eval] ${server}: ${code}`
+        // One request = one disposable container. No env vars forwarded into it.
+        const worker = spawn(
+            "docker",
+            [
+                "run",
+                "--rm",
+                "--name", containerName,
+                "--network=none",
+                "--cap-drop=ALL",
+                "--security-opt=no-new-privileges:true",
+                "--read-only",
+                "--memory=512m",
+                "--cpus=1",
+                "--pids-limit=50",
+                "--tmpfs", "/tmp:size=64m,noexec,nosuid",
+                IMAGE,
+                "node", "eval-server.js", "worker", encoded
+            ],
+            {
+                env: { PATH: process.env.PATH },
+                stdio: ["ignore", "pipe", "pipe"]
+            }
         );
 
-            const worker = fork(
-                __filename,
-                ["worker"],
-                {
-                    execPath: process.execPath
-                }
-            );
-
-
+        let stdout = "";
+        let stderr = "";
         let finished = false;
 
-
-
         const timeout = setTimeout(() => {
-
-
             if (!finished) {
-
                 finished = true;
-
-
-                console.log(
-                    `[Eval] Killing timeout ${id}`
-                );
-
-
+                console.log(`[Eval] Killing timeout ${id}`);
+                spawn("docker", ["kill", containerName], {
+                    env: { PATH: process.env.PATH },
+                    stdio: "ignore"
+                });
                 worker.kill("SIGKILL");
+                socket.emit("codeOutput", id, true, "Execution timeout");
+            }
+        }, 30000);
 
+        worker.stdout.on("data", d => (stdout += d.toString()));
+        worker.stderr.on("data", d => (stderr += d.toString()));
 
+        worker.on("error", err => {
+            if (finished) return;
+            finished = true;
+            clearTimeout(timeout);
+            socket.emit("codeOutput", id, true, err.toString());
+        });
+
+        worker.on("close", code => {
+            if (finished) return;
+            finished = true;
+            clearTimeout(timeout);
+
+            const line = stdout
+                .split("\n")
+                .map(l => l.trim())
+                .filter(Boolean)
+                .pop();
+
+            let result = null;
+            if (line) {
+                try { result = JSON.parse(line); } catch (err) { result = null; }
+            }
+
+            if (result) {
                 socket.emit(
                     "codeOutput",
                     id,
-                    true,
-                    "Execution timeout"
+                    Boolean(result.error),
+                    String(result.output)
                 );
-
+                return;
             }
-
-
-        }, 30000);
-
-
-
-        worker.on("message", result => {
-
-
-            if (finished)
-                return;
-
-
-            finished = true;
-
-
-            clearTimeout(timeout);
-
-
-
-            socket.emit(
-                "codeOutput",
-                id,
-                result.error,
-                result.output
-            );
-
-
-
-            worker.kill();
-
-
-        });
-
-
-
-        worker.on("error", err => {
-
-
-            if (finished)
-                return;
-
-
-            finished = true;
-
-
-            clearTimeout(timeout);
-
-
 
             socket.emit(
                 "codeOutput",
                 id,
                 true,
-                err.toString()
+                stderr.trim() || `Worker crashed (${code})`
             );
-
-
         });
-
-
-
-        worker.on("exit", code => {
-
-
-            if (!finished && code !== 0) {
-
-                finished = true;
-
-                clearTimeout(timeout);
-
-
-                socket.emit(
-                    "codeOutput",
-                    id,
-                    true,
-                    `Worker crashed (${code})`
-                );
-
-            }
-
-        });
-
-
-
-        worker.send(code);
-
-
     });
-
-
 
     socket.on("disconnect", () => {
-
         console.log("[Eval] Bot disconnected");
-
     });
-
 });
