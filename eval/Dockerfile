@@ -1,6 +1,6 @@
 FROM node:22-alpine
 
-RUN apk add --no-cache bash chafa \
+RUN apk add --no-cache bash chafa docker-cli \
     && addgroup -S appgroup \
     && adduser -S appuser -G appgroup
 
@@ -13,6 +13,9 @@ RUN npm install --omit=dev \
 
 COPY eval-server.js .
 COPY eval-watchdog.sh .
+
+# Worker image source
+COPY Dockerfile.docker .
 
 RUN chmod +x eval-watchdog.sh \
     && chown -R appuser:appgroup /app
