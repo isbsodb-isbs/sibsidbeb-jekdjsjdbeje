@@ -12,7 +12,7 @@ if (process.argv[2] === "worker") {
 
     function sh(cmd) {
         return execSync(cmd, {
-            shell: "/bin/sh",
+            shell: "/bin/bash",
             timeout: 20000,
             maxBuffer: 10 * 1024 * 1024
         }).toString();
