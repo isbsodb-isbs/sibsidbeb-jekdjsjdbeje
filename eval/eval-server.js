@@ -178,7 +178,6 @@ io.on("connection", socket => {
                 "--rm",
                 "--name", containerName,
                 "--cap-drop=ALL",
-                "--tmpfs", "/run:rw,exec,size=64m,mode=1777",
                 "--security-opt=no-new-privileges:true",
                 "--read-only",
                 "--memory=512m",
