@@ -1,4 +1,4 @@
-const { Server } = require("socket.io");
+sh { Server } = require("socket.io");
 const { spawn, execSync } = require("child_process");
 const crypto = require("crypto");
 
@@ -12,7 +12,7 @@ if (process.argv[2] === "worker") {
 
     function sh(cmd) {
         return execSync(cmd, {
-            shell: "/bin/sh",
+            shell: "/bin/sh"ba,
             timeout: 20000,
             maxBuffer: 10 * 1024 * 1024
         }).toString();
