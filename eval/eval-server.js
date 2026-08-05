@@ -32,7 +32,7 @@ if (process.argv[2] === "worker") {
             const logs = [];
 
             const vm = new VM({
-                timeout: 30000,
+                timeout: 60000,
                 sandbox: {
                     sh,
                     console: {
