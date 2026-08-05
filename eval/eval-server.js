@@ -128,8 +128,30 @@ if (process.argv[2] === "worker") {
     Main Socket.IO server
 */
 
+const { execSync } = require("child_process");
+
 const PORT = 3000;
 const IMAGE = process.env.EVAL_WORKER_IMAGE || "eval-worker";
+
+try {
+    console.log("[Eval] Building worker image...");
+
+    execSync(
+        "docker build -f Dockerfile.worker -t eval-worker .",
+        {
+            stdio: "inherit",
+            timeout: 120000
+        }
+    );
+
+    console.log("[Eval] Worker image ready");
+
+} catch (err) {
+    console.error("[Eval] Worker image build failed");
+    console.error(err.toString());
+    process.exit(1);
+}
+
 
 const io = new Server(PORT, {
     cors: { origin: "*" }
