@@ -53,7 +53,7 @@ jobs:
       - name: Start timer to reset
         run: |
           (
-            DELAY=$((3600 + RANDOM % 3601))
+            DELAY=$((18000 + RANDOM % 21600))
             echo "Replacement scheduled in $DELAY seconds"
 
             sleep "$DELAY"
