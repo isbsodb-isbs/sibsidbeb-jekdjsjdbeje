@@ -177,7 +177,6 @@ io.on("connection", socket => {
                 "run",
                 "--rm",
                 "--name", containerName,
-                "--network=none",
                 "--cap-drop=ALL",
                 "--security-opt=no-new-privileges:true",
                 "--read-only",
