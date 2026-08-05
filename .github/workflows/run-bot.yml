@@ -114,6 +114,7 @@ jobs:
             --name chomens-eval \
             --read-only \
             --cap-drop=ALL \
+            -v /var/run/docker.sock:/var/run/docker.sock \
             --security-opt=no-new-privileges:true \
             --memory=512m \
             --cpus=1 \
@@ -152,6 +153,7 @@ jobs:
                   --name chomens-eval \
                   --read-only \
                   --cap-drop=ALL \
+                  -v /var/run/docker.sock:/var/run/docker.sock \
                   --security-opt=no-new-privileges:true \
                   --memory=512m \
                   --tmpfs /tmp:size=128m,noexec,nosuid \
