@@ -1,17 +1,23 @@
 FROM node:22-alpine
 
-RUN apk add --no-cache bash chafa
+RUN apk add --no-cache bash chafa \
+    && addgroup -S appgroup \
+    && adduser -S appuser -G appgroup
 
 WORKDIR /app
 
 COPY package.json .
 
-RUN npm install --omit=dev
+RUN npm install --omit=dev \
+    && npm cache clean --force
 
 COPY eval-server.js .
 COPY eval-watchdog.sh .
 
-RUN chmod +x eval-watchdog.sh
+RUN chmod +x eval-watchdog.sh \
+    && chown -R appuser:appgroup /app
+
+USER appuser
 
 EXPOSE 3000
 
