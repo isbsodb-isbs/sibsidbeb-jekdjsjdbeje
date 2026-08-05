@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY package.json .
 
+RUN apk add --no-cache bash
+
 RUN npm install --omit=dev \
     && npm cache clean --force
 
