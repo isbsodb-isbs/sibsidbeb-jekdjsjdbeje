@@ -1,4 +1,3 @@
-
 name: Run ChomeNS
 
 on:
@@ -95,98 +94,98 @@ jobs:
           npm -v
 
 
-          echo "Building eval Docker container"
+          # echo "Building eval Docker container"
 
-          docker build \
-            -t chomens-eval \
-            ./eval
-
-
-          echo "Removing old eval container"
-
-          docker rm -f chomens-eval 2>/dev/null || true
+          # docker build \
+          #   -t chomens-eval \
+          #   ./eval
 
 
-          echo "Starting eval container"
+          # echo "Removing old eval container"
 
-          docker run \
-            -d \
-            --name chomens-eval \
-            --read-only \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            --security-opt=no-new-privileges:true \
-            --memory=2g \
-            --cpus=1 \
-            --pids-limit=50 \
-            --tmpfs /tmp:size=128m,noexec,nosuid \
-            --tmpfs /run:size=64m \
-            --log-opt max-size=10m \
-            --log-opt max-file=3 \
-            -p 127.0.0.1:3000:3000 \
-            chomens-eval
-
-          (
-            while true; do
-
-              RUNNING=$(docker inspect \
-                -f '{{.State.Running}}' \
-                chomens-eval 2>/dev/null || echo false)
+          # docker rm -f chomens-eval 2>/dev/null || true
 
 
-              if [ "$RUNNING" != "true" ]; then
+          # echo "Starting eval container"
 
-                echo "[Eval Watchdog] Container stopped, recreating"
+          # docker run \
+          #   -d \
+          #   --name chomens-eval \
+          #   --read-only \
+          #   -v /var/run/docker.sock:/var/run/docker.sock \
+          #   --security-opt=no-new-privileges:true \
+          #   --memory=2g \
+          #   --cpus=1 \
+          #   --pids-limit=50 \
+          #   --tmpfs /tmp:size=128m,noexec,nosuid \
+          #   --tmpfs /run:size=64m \
+          #   --log-opt max-size=10m \
+          #   --log-opt max-file=3 \
+          #   -p 127.0.0.1:3000:3000 \
+          #   chomens-eval
 
+          # (
+          #   while true; do
 
-                docker rm -f chomens-eval 2>/dev/null || true
-
-
-                docker build \
-                  --no-cache \
-                  -t chomens-eval \
-                  ./eval
-
-
-                docker run \
-                  -d \
-                  --name chomens-eval \
-                  --read-only \
-                  -v /var/run/docker.sock:/var/run/docker.sock \
-                  --security-opt=no-new-privileges:true \
-                  --memory=2g \
-                  --tmpfs /tmp:size=128m,noexec,nosuid \
-                  --tmpfs /run:size=64m \
-                  --cpus 1 \
-                  --pids-limit 50 \
-                  --log-opt max-size=10m \
-                  --log-opt max-file=3 \
-                  -p 127.0.0.1:3000:3000 \
-                  chomens-eval
+          #     RUNNING=$(docker inspect \
+          #       -f '{{.State.Running}}' \
+          #       chomens-eval 2>/dev/null || echo false)
 
 
-                echo "[Eval Watchdog] Container recreated"
+          #     if [ "$RUNNING" != "true" ]; then
 
-              fi
-
-
-              sleep 30
-
-            done
-          ) &
-          sleep 5
+          #       echo "[Eval Watchdog] Container stopped, recreating"
 
 
-          echo "Eval container status"
-
-          docker ps --filter name=chomens-eval
+          #       docker rm -f chomens-eval 2>/dev/null || true
 
 
-          echo "Eval logs"
+          #       docker build \
+          #         --no-cache \
+          #         -t chomens-eval \
+          #         ./eval
 
-          docker logs chomens-eval
+
+          #       docker run \
+          #         -d \
+          #         --name chomens-eval \
+          #         --read-only \
+          #         -v /var/run/docker.sock:/var/run/docker.sock \
+          #         --security-opt=no-new-privileges:true \
+          #         --memory=2g \
+          #         --tmpfs /tmp:size=128m,noexec,nosuid \
+          #         --tmpfs /run:size=64m \
+          #         --cpus 1 \
+          #         --pids-limit 50 \
+          #         --log-opt max-size=10m \
+          #         --log-opt max-file=3 \
+          #         -p 127.0.0.1:3000:3000 \
+          #         chomens-eval
 
 
-          echo "Eval Docker started"
+          #       echo "[Eval Watchdog] Container recreated"
+
+          #     fi
+
+
+          #     sleep 30
+
+          #   done
+          # ) &
+          # sleep 5
+
+
+          # echo "Eval container status"
+
+          # docker ps --filter name=chomens-eval
+
+
+          # echo "Eval logs"
+
+          # docker logs chomens-eval
+
+
+          # echo "Eval Docker started"
       - name: Run bot
         id: run_bot
         env:
