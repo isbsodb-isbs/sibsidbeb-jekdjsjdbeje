@@ -86,7 +86,12 @@ jobs:
 
           curl -sSLo cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
           sudo dpkg -i cloudflared.deb
+          echo "Installing FFmpeg..."
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
 
+          echo "FFmpeg:"
+          ffmpeg -version | head -n 1
           echo "Node:"
           node -v
 
