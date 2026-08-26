@@ -6,10 +6,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: chomens-bot
-  cancel-in-progress: true
-
 jobs:
   bot:
     runs-on: ubuntu-latest
