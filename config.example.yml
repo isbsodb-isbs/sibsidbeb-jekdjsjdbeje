@@ -22,7 +22,7 @@ backup:
 
 database:
   enabled: true
-  address: 'jdbc:mariadb://cloud.layerbase.dev:41270/chomens?sslMode=REQUIRED'
+  address: 'jdbc:mariadb://chomens-aged-foil.cloud.layerbase.dev:41271/chomens?sslMode=REQUIRED'
   username: 'root'
   password: __DB_PASSWORD__
 
