@@ -19,36 +19,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: false
           fetch-depth: 1
-
-      - name: Pull the LFS thingys
-        shell: bash
-        run: |
-          set -euxo pipefail
-
-          git lfs version
-          git lfs install --local
-
-          echo "LFS files tracked by repository:"
-          git lfs ls-files
-
-          echo "Fetching LFS objects..."
-          git lfs fetch origin
-
-          echo "Checking out LFS objects..."
-          git lfs checkout
-
-          echo "Verifying chomens.jar exists and is not an LFS pointer..."
-          test -f chomens.jar
-
-          if grep -q "https://git-lfs.github.com/spec/v1" chomens.jar 2>/dev/null; then
-            echo "::error::chomens.jar is still an LFS pointer!"
-            exit 1
-          fi
-
-          ls -lh chomens.jar
-          file chomens.jar
 
       - name: Setup Java 21 bcos github doesnt want to
         uses: actions/setup-java@v4
