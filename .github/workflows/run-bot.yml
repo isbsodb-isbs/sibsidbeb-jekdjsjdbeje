@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 concurrency:
   group: chomens-bot
@@ -16,22 +17,59 @@ jobs:
     timeout-minutes: 340
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           java-version: "21"
           distribution: temurin
+          cache: gradle
 
       - name: Run ChomeNS
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           DFNGBOOM: ${{ secrets.DFNGBOOM }}
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
           GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
           GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
           COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
           PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
           CF_TUNNEL_TOKEN: ${{ secrets.CF_TUNNEL_TOKEN }}
-        run: bash run.sh
+        run: |
+          chmod +x run.sh
+
+          (
+            DELAY=$((18000 + RANDOM % 3601))
+
+            echo "Automatic restart scheduled in $DELAY seconds"
+
+            sleep "$DELAY"
+
+            echo "Restarting workflow..."
+
+            gh workflow run "Run ChomeNS" \
+              --repo "${{ github.repository }}" \
+              --ref main
+
+            sleep 5
+
+            gh run cancel "${{ github.run_id }}" \
+              --repo "${{ github.repository }}" \
+              || true
+          ) &
+
+          bash run.sh
+          EXIT_CODE=$?
+
+          echo "ChomeNS exited with code $EXIT_CODE"
+
+          echo "Restarting after crash/exit..."
+
+          gh workflow run "Run ChomeNS" \
+            --repo "${{ github.repository }}" \
+            --ref main \
+            || true
+
+          exit "$EXIT_CODE"
