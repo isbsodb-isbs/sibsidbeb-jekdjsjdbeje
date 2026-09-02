@@ -83,13 +83,18 @@ npm -v
 cat > /tmp/run-chomens.sh <<'EOF'
 #!/usr/bin/env bash
 
-java -Xms12G -Xmx12G \
+java \
+  -Xms8G \
+  -Xmx12G \
   -XX:+UseG1GC \
-  -Xlog:gc* \
   -XX:MaxGCPauseMillis=100 \
   -XX:+ParallelRefProcEnabled \
-  -XX:+AlwaysPreTouch \
   -XX:+DisableExplicitGC \
+  -XX:+UseStringDeduplication \
+  -XX:InitiatingHeapOccupancyPercent=20 \
+  -XX:G1ReservePercent=15 \
+  -XX:G1HeapRegionSize=8M \
+  -Xlog:gc*:stdout:time,uptime,level,tags \
   -jar chomens.jar
 
 CODE=$?
