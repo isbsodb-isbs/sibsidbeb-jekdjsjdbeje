@@ -122,6 +122,7 @@ cat > /tmp/run-chomens.sh <<'EOF'
 
 java -Xms12G -Xmx12G \
   -XX:+UseG1GC \
+  -Xlog:gc* \
   -XX:MaxGCPauseMillis=100 \
   -XX:+ParallelRefProcEnabled \
   -XX:+AlwaysPreTouch \
