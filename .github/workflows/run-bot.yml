@@ -197,7 +197,7 @@ jobs:
           cat > run-chomens.sh <<'EOF'
           #!/bin/bash
 
-          java -Xms5G -Xmx5G \
+          java -Xms12G -Xmx12G \
           -XX:+UseG1GC \
           -XX:MaxGCPauseMillis=100 \
           -XX:+ParallelRefProcEnabled \
