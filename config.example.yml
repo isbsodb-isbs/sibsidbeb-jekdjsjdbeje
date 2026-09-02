@@ -153,7 +153,7 @@ bots:
     discordChannelId: '1532880964852912360'
 
   - host: 'kaboom.hcesaropz.dev'
-    port: 25599
+    port: 25565
     serverName: 'hceboom'
     discordChannelId: '1532881552009203812'
 
