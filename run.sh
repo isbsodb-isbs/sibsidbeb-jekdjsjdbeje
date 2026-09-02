@@ -77,43 +77,6 @@ echo "NPM:"
 npm -v
 
 # ============================================================
-# Replacement timer
-# ============================================================
-
-(
-    DELAY=$((18000 + RANDOM % 21600))
-
-    echo "Replacement scheduled in $DELAY seconds"
-
-    sleep "$DELAY"
-
-    echo "Requesting graceful shutdown"
-
-    curl -fsS \
-      -X POST \
-      -H "Authorization: Bearer ${PAT_TOKEN}" \
-      -H "Accept: application/vnd.github+json" \
-      "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/cancel" \
-      || true
-
-    sleep 5
-
-    echo "Starting replacement"
-
-    curl -fsS \
-      -X POST \
-      -H "Authorization: Bearer ${PAT_TOKEN}" \
-      -H "Accept: application/vnd.github+json" \
-      "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/run-bot.yml/dispatches" \
-      -d '{"ref":"main"}' \
-      || true
-
-    echo "Replacement started"
-) &
-
-TIMER_PID=$!
-
-# ============================================================
 # Start ChomeNS
 # ============================================================
 
@@ -182,11 +145,6 @@ echo "Services started"
 shutdown() {
     echo
     echo "Shutdown requested"
-
-    # Stop replacement timer.
-    if [ -n "${TIMER_PID:-}" ]; then
-        kill "$TIMER_PID" 2>/dev/null || true
-    fi
 
     # Stop auxiliary services.
     kill "${TTYD_PID:-}" 2>/dev/null || true
@@ -262,27 +220,5 @@ CODE="$(cat "$EXIT_FILE" 2>/dev/null || echo 1)"
 echo "Bot process exited with code $CODE"
 
 shutdown
-
-# ============================================================
-# Start replacement
-# ============================================================
-
-DELAY=$((RANDOM % 6))
-
-echo "Starting replacement in $DELAY seconds"
-
-sleep "$DELAY"
-
-echo "Dispatching replacement workflow"
-
-curl -fsS \
-  -X POST \
-  -H "Authorization: Bearer ${PAT_TOKEN}" \
-  -H "Accept: application/vnd.github+json" \
-  "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/run-bot.yml/dispatches" \
-  -d '{"ref":"main"}' \
-  || true
-
-echo "Replacement requested"
 
 exit "$CODE"
